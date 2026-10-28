@@ -1,7 +1,13 @@
-const start = document.querySelector('#local-payphone-start');
 const status = document.querySelector('#local-payphone-status');
 const field = document.querySelector('[data-monthly]');
-start.disabled = true;
+let ready = false;
+let wantsCard = false;
+let started = false;
+
+document.addEventListener('paymentmethodchange', event => {
+  wantsCard = event.detail?.method === 'tarjeta';
+  if (wantsCard) void prepareCajita();
+});
 
 function protectOperation(monthly, paymentState) {
   if (monthly) {
@@ -27,18 +33,22 @@ try {
     status.textContent = active.status === 'approved'
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
-  } else start.disabled = false;
+  } else {
+    ready = true;
+    if (wantsCard) void prepareCajita();
+  }
 } catch {
   status.textContent = 'No se pudo comprobar el estado de la operación. No inicies otro pago.';
 }
 
-start.addEventListener('click', async () => {
+async function prepareCajita() {
+  if (!ready || !wantsCard || started) return;
   const monthly = Number(field.value);
   if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) {
     status.textContent = 'Ingresa entre 1 y 10,000 documentos mensuales para la prueba.';
     return;
   }
-  start.disabled = true;
+  started = true;
   protectOperation(monthly);
   status.textContent = 'Preparando la operación de prueba…';
   try {
@@ -62,4 +72,4 @@ start.addEventListener('click', async () => {
   } catch {
     status.textContent = 'No se pudo preparar la Cajita. Confirma el estado de la operación antes de reintentar.';
   }
-});
+}

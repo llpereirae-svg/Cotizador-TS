@@ -56,7 +56,6 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       const marker = '<div class="card-placeholder" id="payphone-container">';
       if (!renewal.includes(marker)) return html(res, 503, 'La vista de renovación cambió; revisa el adaptador local.');
       const patched = renewal.replace(marker, `<p>Ensayo local con credenciales de prueba. La renovación real no se realiza.</p>
-        <button id="local-payphone-start" type="button" class="button-primary action-button">Preparar Cajita de prueba</button>
         <p id="local-payphone-status" role="status" aria-live="polite"></p><div id="pp-button"></div>${marker}`)
         .replace('</head>', '<style>#payphone-container,#simulate-pending,#simulate-cancelled{display:none!important}</style></head>')
         .replace('</body>', '<script type="module" src="/sandbox-payphone/renewal-bridge.js"></script></body>');

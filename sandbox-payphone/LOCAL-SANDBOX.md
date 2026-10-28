@@ -27,7 +27,7 @@ powershell -ExecutionPolicy Bypass -File .\sandbox-payphone\iniciar-prueba.ps1
 ```
 
 Abre `http://localhost:8131/renovacion.html` en **esta computadora**, elige una
-cantidad de documentos y la pestaña TC/TD. Al pulsar «Preparar Cajita de prueba»
+cantidad de documentos y la pestaña TC/TD. Al seleccionar esa pestaña,
 el servidor recalcula el importe de la orden de demostración, crea una reserva
 persistente y carga el SDK oficial; introducir datos y finalizar el pago requiere
 una acción adicional de la persona probadora. La transferencia y el correo
