@@ -226,6 +226,10 @@ test("los bancos se muestran en el desplegable solo para transferencia", async (
     assert.ok(accountValues.every(value => /^\d{9,12}$/.test(value)), "Cada cuenta debe contener solo dígitos.");
     await page.locator("[data-method=tarjeta]").click();
     assert.equal(await details.isVisible(), false);
+    assert.equal(await page.locator("#payphone-container").isVisible(), false);
+    assert.equal(await page.locator("#card-continue").isDisabled(), true);
+    await page.locator("#card-terms").check();
+    await page.locator("#card-continue").click();
     assert.equal(await page.locator("#payphone-container").isVisible(), true);
     assert.equal(await page.locator("#payphone-container input").count(), 0);
   });

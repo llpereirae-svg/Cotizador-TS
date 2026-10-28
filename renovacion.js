@@ -71,6 +71,9 @@ const codeMessage = document.querySelector("#code-message");
 const codeDialog = document.querySelector("#code-dialog");
 const termsDialog = document.querySelector("#terms-dialog");
 const cardTerms = document.querySelector("#card-terms");
+const cardContinue = document.querySelector("#card-continue");
+const cardModify = document.querySelector("#card-modify");
+const cardActions = document.querySelector("#card-confirm-actions");
 const transferMessage = document.querySelector("#transfer-message");
 const pendingMessage = document.querySelector("#pending-message");
 let codeVerified = false;
@@ -99,6 +102,8 @@ confirmPlan.addEventListener("click", () => {
 
 editPlan.addEventListener("click", () => {
   if (cardPending || codeRequestInFlight || verificationInFlight) return;
+  document.dispatchEvent(new CustomEvent("sandbox-plan-edit"));
+  document.querySelector("#payphone-container").hidden = true;
   noteOperationChange();
   resetCode();
   paymentCard.hidden = true;
@@ -122,9 +127,13 @@ document.addEventListener("visibilitychange", () => {
 
 document.querySelectorAll("[data-open-terms]").forEach(link => link.addEventListener("click", event => { event.preventDefault(); termsDialog.showModal(); }));
 document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => button.closest("dialog").close()));
-cardTerms.addEventListener("change", () => {
-  if (selectedMethod === "tarjeta" && cardTerms.checked) document.dispatchEvent(new CustomEvent("paymentmethodchange", { detail: { method: "tarjeta" } }));
+cardTerms.addEventListener("change", () => { cardContinue.disabled = !cardTerms.checked || cardPending; });
+cardContinue.addEventListener("click", () => {
+  if (!cardTerms.checked || cardPending || selectedMethod !== "tarjeta") return;
+  document.querySelector("#payphone-container").hidden = false;
+  document.dispatchEvent(new CustomEvent("sandbox-open-payphone"));
 });
+cardModify.addEventListener("click", () => editPlan.click());
 
 function selectMethod(button) {
   if (selectedMethod === button.dataset.method) {
@@ -341,6 +350,7 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
   noteOperationChange();
   cardPending = true;
   editPlan.disabled = true;
+  cardActions.hidden = true;
   resetCode();
   bankDetails.open = false;
   bankSummary.setAttribute("aria-disabled", "true");
@@ -356,6 +366,7 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
 document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardPending = false;
   editPlan.disabled = false;
+  cardActions.hidden = false;
   bankSummary.removeAttribute("aria-disabled");
   pendingMessage.hidden = true;
   transferPending.hidden = true;
@@ -393,4 +404,9 @@ receiptInput.addEventListener("change", () => {
 for (const selector of ["#bank", "#payment-date", "#terms"]) {
   document.querySelector(selector).addEventListener("change", () => { noteOperationChange(); resetCode(); });
 }
-document.addEventListener("quotechange", () => { noteOperationChange(); resetCode(); });
+function updateCardOverview(value) {
+  document.querySelector("#card-documents").textContent = value ? new Intl.NumberFormat("es-EC").format(value.annual) : "—";
+  document.querySelector("#card-total").textContent = value ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value.totalCents / 100) : "—";
+}
+document.addEventListener("quotechange", event => { noteOperationChange(); resetCode(); updateCardOverview(event.detail); });
+updateCardOverview(quote.current());
