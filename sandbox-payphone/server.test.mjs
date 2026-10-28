@@ -202,10 +202,13 @@ test('al volver del botón permite editar sin liberar la orden ni permitir otro 
     assert.equal(denied, 400);
     page.once('dialog', dialog => dialog.accept());
     const closed = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/cerrar-sin-pago'));
-    const navigation = page.waitForEvent('load');
+    await page.evaluate(() => { window.samePageMarker = 'kept'; });
     await page.getByRole('button', { name: 'Cancelar transacción', exact: true }).click();
     assert.equal((await closed).status(), 200);
-    await navigation;
+    await page.waitForFunction(() => document.querySelector('[data-method="banco"]').getAttribute('aria-selected') === 'true');
+    assert.equal(await page.evaluate(() => window.samePageMarker), 'kept');
+    assert.equal(await page.locator('[data-monthly]').inputValue(), '12');
+    assert.equal(await page.locator('#simulate-renewal').isEnabled(), true);
     const next = await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()));
     assert.equal(next.active, null);
     await context.close();
@@ -264,6 +267,38 @@ test('el navegador envía el origen al abrir el formulario simulado', async () =
   } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
 });
 
+test('cancelar una Cajita en prueba conserva cantidad y cambia a transferencia sin recargar', async () => {
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:' });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext();
+    await context.route('https://cdn.payphonetodoesposible.com/**', route => route.request().url().endsWith('.js')
+      ? route.fulfill({ contentType: 'text/javascript', body: "window.PPaymentButtonBox=class { render(id){ document.getElementById(id).textContent='Formulario simulado'; } }" })
+      : route.fulfill({ contentType: 'text/css', body: '' }));
+    const page = await context.newPage();
+    const state = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/estado'));
+    await page.goto(`http://localhost:${port}/renovacion.html`); await state;
+    await page.locator('[data-monthly]').fill('12');
+    await page.locator('#confirm-plan').click();
+    await page.locator('[data-method="tarjeta"]').click();
+    await page.locator('#card-terms').check();
+    await page.locator('#card-continue').click();
+    await page.getByRole('button', { name: 'Cancelar transacción' }).waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#pending-message').isVisible(), false);
+    await page.evaluate(() => { window.samePageMarker = 'kept'; });
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: 'Cancelar transacción' }).click();
+    await page.waitForFunction(() => document.querySelector('[data-method="banco"]').getAttribute('aria-selected') === 'true');
+    assert.equal(await page.evaluate(() => window.samePageMarker), 'kept');
+    assert.equal(await page.locator('[data-monthly]').inputValue(), '12');
+    assert.equal(await page.locator('#simulate-renewal').isEnabled(), true);
+    assert.equal((await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()))).active, null);
+    await context.close();
+  } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
 test('la renovación local envía solo cantidad y el servidor recalcula, también tras recargar', async () => {
   const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake',
     dbPath: ':memory:', fetchImpl: async (_url, request) => {
@@ -318,6 +353,8 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     await page.locator('#card-continue').click();
     const config = await (await reservation).json();
     await page.waitForFunction(() => window.testAmount === 3450);
+    assert.equal(await page.getByRole('button', { name: 'Cancelar transacción' }).isVisible(), true);
+    assert.equal(await page.locator('#pending-message').isVisible(), false);
     await page.clock.fastForward(61000);
     assert.equal(await page.locator('#pp-button').isVisible(), true);
     assert.equal(await page.locator('#local-payphone-status').innerText(), '');
@@ -330,6 +367,7 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(await page.locator('[data-monthly]').isDisabled(), false);
     assert.equal(await page.locator('[data-monthly]').inputValue(), '10');
     await page.locator('#confirm-plan').click();
+    await page.locator('[data-method="tarjeta"]').click();
     assert.equal(await page.getByRole('button', { name: 'Cancelar transacción' }).isVisible(), true);
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.goto(`http://localhost:${port}/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`);

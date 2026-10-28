@@ -15,6 +15,34 @@ document.addEventListener('paymentmethodchange', event => {
 document.addEventListener('sandbox-plan-edit', () => { wantsStart = false; wantsCard = false; });
 document.addEventListener('sandbox-open-payphone', () => { wantsCard = true; wantsStart = true; void prepareCajita(); });
 
+function offerTestCancellation() {
+  if (document.querySelector('#sandbox-cancel-transaction')) return;
+  const button = document.createElement('button');
+  button.id = 'sandbox-cancel-transaction';
+  button.type = 'button';
+  button.className = 'button-secondary action-button';
+  button.textContent = 'Cancelar transacción';
+  button.addEventListener('click', async () => {
+    if (!window.confirm('Solo para esta prueba: cierra la página de PayPhone. ¿Confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
+    button.disabled = true;
+    try {
+      const result = await fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: true }) });
+      if (!result.ok) throw new Error();
+      document.querySelector('#pp-button').replaceChildren();
+      document.querySelector('#payphone-container').hidden = true;
+      document.querySelector('#simulate-cancelled').click();
+      document.querySelector('#card-resolution-message').hidden = true;
+      terms.disabled = false;
+      status.textContent = '';
+      ready = true; started = false; wantsStart = false;
+      button.remove();
+      document.querySelector('[data-method="banco"]').click();
+      document.querySelector('#bank-panel').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    } catch { button.disabled = false; status.textContent = 'No se pudo cerrar la orden. Revisa su estado antes de reintentar.'; }
+  });
+  document.querySelector('#payphone-container').after(button);
+}
+
 function protectOperation(monthly, paymentState) {
   if (monthly) {
     field.value = String(monthly);
@@ -28,6 +56,7 @@ function protectOperation(monthly, paymentState) {
     document.querySelector('#transfer-pending p').textContent = 'La operación ya fue aprobada. Continúa su verificación para evitar un pago duplicado.';
   } else {
     document.querySelector('#pending-message p').textContent = 'Hay una operación de prueba activa. Confirma su estado antes de intentar otro método.';
+    document.querySelector('#pending-message').hidden = true;
   }
   for (const selector of ['[data-monthly]', '[data-increase]', '[data-decrease]']) document.querySelector(selector).disabled = true;
   terms.disabled = true;
@@ -48,20 +77,8 @@ try {
       document.querySelector('#pending-message p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
       document.querySelector('#transfer-pending strong').textContent = 'Verificación de pago pendiente';
       document.querySelector('#transfer-pending p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
-      const closeTest = document.createElement('button');
-      closeTest.type = 'button';
-      closeTest.className = 'button-secondary action-button';
-      closeTest.textContent = 'Cancelar transacción';
-      closeTest.addEventListener('click', async () => {
-        if (!window.confirm('Solo para esta prueba: cierra la página de PayPhone. ¿Confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
-        closeTest.disabled = true;
-        try {
-          const result = await fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: true }) });
-          if (!result.ok) throw new Error();
-          location.assign('/renovacion.html');
-        } catch { closeTest.disabled = false; status.textContent = 'No se pudo cerrar la orden. Revisa su estado antes de reintentar.'; }
-      });
-      document.querySelector('.payment-options').after(closeTest);
+      status.textContent = '';
+      offerTestCancellation();
       document.dispatchEvent(new CustomEvent('sandbox-allow-pending-edit'));
       history.replaceState(null, '', location.pathname);
     }
@@ -123,6 +140,7 @@ async function prepareCajita() {
     await new Promise((resolve, reject) => { sdk.onload = resolve; sdk.onerror = reject; document.head.append(sdk); });
     if (typeof window.PPaymentButtonBox !== 'function') throw new Error();
     new window.PPaymentButtonBox(config).render('pp-button');
+    offerTestCancellation();
     status.textContent = '';
   } catch {
     status.textContent = 'No se pudo preparar la Cajita. Confirma el estado de la operación antes de reintentar.';
