@@ -138,6 +138,9 @@
 .checkout-total { margin-top: 18px !important; padding-top: 18px; border-top: 1px solid #e6ebf1; align-items: center; }
 .checkout-total dt { color: var(--text); font: 700 30px/1.1 "DM Sans", sans-serif; letter-spacing: -.03em; }
 .checkout-total dd { color: var(--navy); font: 700 30px/1.1 "DM Sans", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+@media (max-width: 390px) {
+  .checkout-total dt, .checkout-total dd { font-size: clamp(22px, 6.4vw, 25px); }
+}
 
 .section-heading { align-items: center; }
 .section-heading h2 { margin: 0; }
