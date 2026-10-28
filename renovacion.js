@@ -58,6 +58,7 @@ const transferPending = document.querySelector("#transfer-pending");
 const cardResolutionMessage = document.querySelector("#card-resolution-message");
 const codeInput = document.querySelector("#email-code");
 const codeMessage = document.querySelector("#code-message");
+const finishRenewal = document.querySelector("#finish-renewal");
 const codeDialog = document.querySelector("#code-dialog");
 const termsDialog = document.querySelector("#terms-dialog");
 const cardTerms = document.querySelector("#card-terms");
@@ -131,6 +132,7 @@ methods.forEach((button, index) => {
 });
 
 function resetCode() {
+  finishRenewal.hidden = true;
   receiptRevision += 1;
   codeVerified = false;
   verificationReference = null;
@@ -195,9 +197,11 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
     transferMessage.dataset.kind = "complete";
   }
   codeMessage.textContent = "Código de prueba verificado. No se envió información real.";
+  finishRenewal.hidden = false;
 });
 
 codeInput.addEventListener("input", () => {
+  finishRenewal.hidden = true;
   noteOperationChange();
   if (codeVerified) {
     codeVerified = false;
