@@ -1,6 +1,25 @@
 import { mountQuote } from "./assets/quote.js";
 import { demoRenewalAdapter } from "./renovacion-mock.js";
 
+// Contexto de demostración. La integración real debe recibir estos datos del
+// backend autenticado; la URL no acredita ni autoriza al titular de la cuenta.
+export function renderCustomerContext() {
+  document.querySelectorAll("[data-customer-type]").forEach(node => { node.textContent = "Identificación"; });
+  document.querySelectorAll("[data-customer-id]").forEach(node => { node.textContent = "—"; });
+  document.querySelectorAll("[data-customer-name]").forEach(node => { node.textContent = "Cliente por identificar"; });
+  let customer;
+  try { customer = JSON.parse(document.querySelector("#customer-context").textContent); } catch { return; }
+  const kind = customer?.tipoIdentificacion;
+  const id = typeof customer?.identificacion === "string" ? customer.identificacion : "";
+  const name = typeof customer?.nombre === "string" ? customer.nombre.trim().slice(0, 150) : "";
+  const validId = (kind === "RUC" && /^\d{13}$/.test(id)) || (kind === "Cédula" && /^\d{10}$/.test(id));
+  if (!validId || !name) return;
+  document.querySelectorAll("[data-customer-type]").forEach(node => { node.textContent = kind; });
+  document.querySelectorAll("[data-customer-id]").forEach(node => { node.textContent = id; });
+  document.querySelectorAll("[data-customer-name]").forEach(node => { node.textContent = name; });
+}
+renderCustomerContext();
+
 function estimateExpiry(today) {
   const year = today.getFullYear() + 1;
   const month = today.getMonth();
