@@ -42,8 +42,9 @@
 .dialog-content p { margin: 0 0 12px; }
 .draft-notice { padding: 12px; border-radius: 8px; background: #f6f9fc; }
 .payment-notice { margin-top: 18px; padding: 14px; border: 1px solid #f1c49e; border-radius: 9px; color: var(--text); background: transparent; }
-.payment-notice > strong { display: block; margin-bottom: 6px; color: var(--text); }
+.payment-notice > strong { display: block; margin-bottom: 6px; color: #a64b00; font-weight: 700; font-variation-settings: "wght" 800; }
 .payment-notice p { margin: 0; color: var(--text); }
+.payment-notice p strong { font-weight: 700; font-variation-settings: "wght" 800; }
 .code-input { max-width: 200px; }
 .resend-prompt { margin-top: 10px !important; font-size: 13px; }
 .dialog-done { width: 100%; margin-top: 8px; }
