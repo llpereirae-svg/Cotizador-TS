@@ -74,7 +74,7 @@ test('reserva local, retorno validado y confirmación con proveedor simulado', a
     assert.equal((await send(port, callback)).status, 403);
     const result = await send(port, callback, { headers: { cookie } });
     assert.equal(result.status, 303);
-    assert.equal(result.headers.location, '/renovacion.html');
+    assert.equal(result.headers.location, '/renovacion.html?pago=aprobado');
     assert.equal(calls, 1);
     assert.deepEqual(events, ['reserva_creada', 'reserva_rechazada_operacion_activa', 'retorno_recibido', 'confirmacion_iniciada', 'confirmacion_aprobada']);
     assert.equal((await send(port, callback, { headers: { cookie } })).status, 303);
@@ -203,11 +203,15 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     await page.locator('#code-dialog').waitFor({ state: 'visible' });
     assert.match(await page.locator('#code-dialog').innerText(), /Email registrado/i);
     await page.locator('#code-dialog [data-close-dialog]').click();
+    await page.reload();
     await page.waitForFunction(() => document.querySelector('[data-monthly]').disabled);
+    assert.equal(await page.locator('#code-dialog').isVisible(), false);
     await page.locator('[data-method="tarjeta"]').click();
     assert.match(await page.locator('#local-payphone-status').innerText(), /fue aprobada/);
     assert.match(await page.locator('#pending-message strong').innerText(), /aprobada/);
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
+    await page.getByRole('button', { name: 'Continuar verificación' }).click();
+    assert.equal(await page.locator('#code-dialog').isVisible(), true);
   } finally {
     await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore();
   }

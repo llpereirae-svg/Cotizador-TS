@@ -53,6 +53,9 @@ PayPhone documenta que cada formulario de la Cajita tiene una vigencia de diez
 minutos desde su carga: https://docs.payphone.app/cajita-de-pagos. En caso de
 confirmación aprobada, el aviso de correo sigue siendo simulado; una cancelación
 confirmada devuelve al selector de métodos. Un tiempo de espera no prueba cancelación.
+La ventana se abre automáticamente al regresar de una confirmación aprobada;
+al volver a cargar la página se mantiene la operación y se puede continuar la
+verificación desde la opción de tarjeta sin volver a abrir la ventana sola.
 No borres ni restablezcas una orden pendiente para reintentar sin verificarla.
 Si la Cajita no llega a abrir por un error de configuración, cierra la pestaña y
 detén el servidor con Ctrl+C. Puedes revisar el identificador del intento con:

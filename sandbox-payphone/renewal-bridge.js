@@ -36,7 +36,18 @@ try {
     status.textContent = active.status === 'approved'
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
-    if (active.status === 'approved') document.dispatchEvent(new CustomEvent('sandbox-payment-approved'));
+    if (active.status === 'approved') {
+      const resume = document.createElement('button');
+      resume.type = 'button';
+      resume.className = 'button-secondary action-button';
+      resume.textContent = 'Continuar verificación';
+      resume.addEventListener('click', () => document.dispatchEvent(new CustomEvent('sandbox-payment-approved')));
+      status.after(resume);
+      if (new URLSearchParams(location.search).get('pago') === 'aprobado') {
+        history.replaceState(null, '', location.pathname);
+        document.dispatchEvent(new CustomEvent('sandbox-payment-approved'));
+      }
+    }
   } else {
     ready = true;
     if (canceled) {
