@@ -120,7 +120,7 @@ async function completeDemo(page) {
   await page.locator("#verify-code").click();
   assert.equal(await page.evaluate(() => window.demoFinished), 1);
   await page.locator("#code-dialog [data-close-dialog]").click();
-  assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
+  assert.match(await page.locator("#transfer-message").innerText(), /envío del comprobante aún no está disponible/);
 }
 
 test("el código no se reutiliza tras cambiar la operación y no se envía dos veces", async () => {
@@ -166,7 +166,7 @@ test("reenviar código es simulado y limpia el código anterior", async () => {
     await page.locator("#email-code").fill("123456");
     await page.locator("#resend-code").click();
     assert.equal(await page.locator("#email-code").inputValue(), "");
-    assert.match(await page.locator("#code-message").innerText(), /Reenvío simulado/);
+    assert.match(await page.locator("#code-message").innerText(), /reenvío de código aún no está disponible/i);
   });
 });
 
