@@ -196,6 +196,16 @@ test('al volver del botón permite editar sin liberar la orden ni permitir otro 
     const active = await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()));
     assert.equal(active.active.status, 'reserved');
     assert.equal(active.active.paymentKind, 'button');
+    const denied = await page.evaluate(() => fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: false }) }).then(r => r.status));
+    assert.equal(denied, 400);
+    page.once('dialog', dialog => dialog.accept());
+    const closed = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/cerrar-sin-pago'));
+    const navigation = page.waitForEvent('load');
+    await page.getByRole('button', { name: 'No ingresé datos ni pagué' }).click();
+    assert.equal((await closed).status(), 200);
+    await navigation;
+    const next = await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()));
+    assert.equal(next.active, null);
     await context.close();
   } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
 });

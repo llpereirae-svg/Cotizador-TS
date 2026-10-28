@@ -48,6 +48,20 @@ try {
       document.querySelector('#pending-message p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
       document.querySelector('#transfer-pending strong').textContent = 'Verificación de pago pendiente';
       document.querySelector('#transfer-pending p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
+      const closeTest = document.createElement('button');
+      closeTest.type = 'button';
+      closeTest.className = 'button-secondary action-button';
+      closeTest.textContent = 'No ingresé datos ni pagué';
+      closeTest.addEventListener('click', async () => {
+        if (!window.confirm('Solo para esta prueba: ¿confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
+        closeTest.disabled = true;
+        try {
+          const result = await fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: true }) });
+          if (!result.ok) throw new Error();
+          location.assign('/renovacion.html');
+        } catch { closeTest.disabled = false; status.textContent = 'No se pudo cerrar la orden. Revisa su estado antes de reintentar.'; }
+      });
+      document.querySelector('.payment-options').after(closeTest);
       document.dispatchEvent(new CustomEvent('sandbox-allow-pending-edit'));
       history.replaceState(null, '', location.pathname);
     }

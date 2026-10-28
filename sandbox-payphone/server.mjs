@@ -163,6 +163,22 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       logEvent('prueba_aprobada_finalizada');
       res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ status: 'simulado' }));
     }
+    if (req.method === 'POST' && url.pathname === '/sandbox-payphone/cerrar-sin-pago') {
+      if (![origin, ...(tunnelOrigin ? [tunnelOrigin] : [])].includes(req.headers.origin) || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
+      let body = '';
+      for await (const chunk of req) { body += chunk; if (body.length > 128) return html(res, 413, 'Solicitud demasiado grande.'); }
+      let attested;
+      try { ({ noCardDataOrPayment: attested } = JSON.parse(body)); } catch { return html(res, 400, 'Declaración inválida.'); }
+      if (attested !== true) return html(res, 400, 'Se requiere una declaración explícita.');
+      const candidate = store.recoveryCandidate('demo-unica');
+      const order = candidate && store.get(candidate.clientTransactionId);
+      if (!candidate || candidate.status !== 'reserved' || candidate.providerTransactionId !== null || order?.paymentKind !== 'button') {
+        return html(res, 409, 'El estado requiere revisión.');
+      }
+      if (!store.closeManually({ clientTransactionId: candidate.clientTransactionId, attestation: 'not_submitted' })) return html(res, 409, 'El estado cambió; verifica la operación.');
+      logEvent('boton_cierre_manual_sin_pago');
+      res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ closed: true }));
+    }
     if (req.method === 'GET' && url.pathname === '/respuesta-payphone.html') {
       if (url.searchParams.getAll('id').length !== 1 || url.searchParams.getAll('clientTransactionId').length !== 1) {
         return html(res, 400, 'Retorno inválido; la operación queda pendiente.');
