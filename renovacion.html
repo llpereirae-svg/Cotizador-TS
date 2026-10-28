@@ -7,7 +7,7 @@
   <title>Renueva tu plan | TributaSoft</title>
   <link rel="icon" href="./assets/tributasoft-logo.png">
   <link rel="stylesheet" href="./assets/base.css">
-  <link rel="stylesheet" href="./renovacion.css?v=20261028-9">
+  <link rel="stylesheet" href="./renovacion.css?v=20261028-10">
 </head>
 <body>
   <header class="site-header">
@@ -142,10 +142,11 @@
     <div class="dialog-head"><h2 id="code-title">Confirma tu correo</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar verificación">×</button></div>
     <div class="dialog-content"><p>Ingresa el código enviado al correo asociado a tu cuenta para continuar.</p><p class="draft-notice">Demostración: no se ha enviado ningún correo. Usa el código de ejemplo.</p>
       <div class="code-entry" id="code-entry" hidden><label class="field-label" for="email-code">Código de ejemplo: 123456</label><div class="code-row"><input class="field-control" id="email-code" inputmode="numeric" maxlength="6" autocomplete="off"><button class="button-secondary" type="button" id="verify-code">Verificar</button></div><p id="code-message" class="field-hint" role="status" aria-live="polite"></p></div>
+      <a class="button-primary finish-link" id="finish-renewal" href="https://tbc.tributasoft.ec/Erp-web/templates/registro/login.xhtml" hidden>Finalizar</a>
       <p class="payment-notice">El pago será revisado en dos horas hábiles. Si se detecta un pago indebido o fraudulento, el servicio podrá suspenderse, sujeto a las condiciones definitivas.</p>
     </div>
   </dialog>
   <script id="customer-context" type="application/json">{"tipoIdentificacion":"RUC","identificacion":"0999999999001","nombre":"Cliente de ejemplo","simulado":true}</script>
-  <script type="module" src="./renovacion.js?v=20261028-5"></script>
+  <script type="module" src="./renovacion.js?v=20261028-6"></script>
 </body>
 </html>

@@ -24,6 +24,7 @@
 .verification { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 23px; padding-top: 22px; border-top: 1px solid #e6ebf1; }
 .verification button { flex: 0 0 auto; }
 .code-entry { margin-top: 20px; }
+.finish-link { display: flex; align-items: center; justify-content: center; width: 100%; margin: 12px 0; text-decoration: none; }
 .code-row { display: flex; gap: 10px; }
 .code-row input { flex: 1; min-width: 0; }
 .terms-check { display: flex; align-items: flex-start; gap: 9px; margin: 23px 0 19px; color: #55677b; font-size: 13px; }

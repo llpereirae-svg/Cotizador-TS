@@ -87,8 +87,14 @@ async function completeDemo(page) {
   await page.locator("#terms").check();
   await page.locator("#simulate-renewal").click();
   await page.locator("#code-entry").waitFor({ state: "visible" });
+  assert.equal(await page.locator("#finish-renewal").isVisible(), false);
+  await page.locator("#email-code").fill("000000");
+  await page.locator("#verify-code").click();
+  assert.equal(await page.locator("#finish-renewal").isVisible(), false);
   await page.locator("#email-code").fill("123456");
   await page.locator("#verify-code").click();
+  assert.equal(await page.locator("#finish-renewal").isVisible(), true);
+  assert.equal(await page.locator("#finish-renewal").getAttribute("href"), "https://tbc.tributasoft.ec/Erp-web/templates/registro/login.xhtml");
   await page.locator("#code-dialog [data-close-dialog]").click();
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
