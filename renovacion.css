@@ -83,7 +83,8 @@
 
 .file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
 .file-picker { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 52px; padding: 8px; border: 1px solid #cbd6e4; border-radius: 9px; color: #52657b; font-size: 13px; cursor: pointer; }
-.file-button { flex: 0 0 auto; padding: 8px 10px; color: var(--navy); background: #eef4fa; border-radius: 6px; font-weight: 700; }
+.file-button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 10px 12px; color: #fff; background: var(--navy); border-radius: 7px; font-weight: 700; }
+.file-button .icon { width: 17px; height: 17px; }
 #file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-input:focus-visible + .file-picker { outline: 3px solid #f9ae72; outline-offset: 3px; }
 
