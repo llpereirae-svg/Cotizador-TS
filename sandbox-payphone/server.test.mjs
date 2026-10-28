@@ -201,7 +201,7 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.goto(`http://localhost:${port}/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`);
     await page.locator('#code-dialog').waitFor({ state: 'visible' });
-    assert.match(await page.locator('#code-dialog').innerText(), /no se ha enviado ningún correo/i);
+    assert.match(await page.locator('#code-dialog').innerText(), /Correo de prueba/i);
     await page.locator('#code-dialog [data-close-dialog]').click();
     await page.waitForFunction(() => document.querySelector('[data-monthly]').disabled);
     await page.locator('[data-method="tarjeta"]').click();
