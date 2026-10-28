@@ -176,12 +176,16 @@ function resetCode() {
   codeMessage.textContent = "";
 }
 
-function validReceipt(file) {
-  if (!file) return false;
+function receiptError(file) {
+  if (!file) return "Selecciona un comprobante de pago.";
   const match = /\.(jpg|jpeg|png|pdf)$/i.exec(file.name);
-  if (!match || file.size > 500000 || file.size === 0) return false;
   const allowedTypes = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", pdf: "application/pdf" };
-  return !file.type || file.type.toLowerCase() === allowedTypes[match[1].toLowerCase()];
+  if (!match || (file.type && file.type.toLowerCase() !== allowedTypes[match[1].toLowerCase()])) {
+    return "Formato no admitido. Selecciona un archivo JPG, JPEG, PNG o PDF.";
+  }
+  if (file.size > 250000) return "El peso máximo del archivo es 250 KB.";
+  if (file.size === 0) return "El archivo está vacío. Selecciona otro comprobante.";
+  return "";
 }
 
 async function openCodeDemo() {
@@ -301,7 +305,8 @@ renewalButton.addEventListener("click", async () => {
   const bank = document.querySelector("#bank").value;
   const operationType = operation.value;
   const paymentDate = document.querySelector("#payment-date").value;
-  const receiptSelected = validReceipt(receiptInput.files[0]);
+  const receiptProblem = receiptError(receiptInput.files[0]);
+  const receiptSelected = !receiptProblem;
   const terms = document.querySelector("#terms").checked;
   if (!currentQuote) {
     transferMessage.textContent = "Ingresa una cantidad válida de documentos.";
@@ -310,6 +315,10 @@ renewalButton.addEventListener("click", async () => {
     return;
   }
   if (!bank || !paymentDate || !receiptSelected || !terms) {
+    if (receiptProblem) {
+      codeRequestMessage.textContent = receiptProblem;
+      codeRequestMessage.hidden = false;
+    }
     transferMessage.textContent = "Completa los datos, selecciona un archivo y acepta los términos.";
     transferMessage.dataset.kind = "validation";
     return;
@@ -367,8 +376,9 @@ receiptInput.addEventListener("change", () => {
     codeRequestMessage.hidden = true;
     return;
   }
-  if (!validReceipt(file)) {
-    codeRequestMessage.textContent = "Selecciona un JPG, JPEG, PNG o PDF de hasta 500 KB (500,000 bytes).";
+  const error = receiptError(file);
+  if (error) {
+    codeRequestMessage.textContent = error;
     codeRequestMessage.hidden = false;
     return;
   }

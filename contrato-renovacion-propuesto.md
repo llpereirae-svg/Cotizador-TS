@@ -24,7 +24,7 @@ El backend debe calcular y validar la cotización y la vigencia definitiva. La i
 
 ## Código de correo
 
-La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. En la integración real la solicitud del código debe iniciarse solo después de que el backend confirme la carga del comprobante; seleccionar un archivo no es suficiente. El backend debe validar formato, contenido y tamaño (máximo 500,000 bytes). En la maqueta, tras validar los campos y pulsar Continuar, se abre una ventana con un código simulado; ningún archivo o correo sale del navegador. Si el comprobante cambia, debe invalidarse la verificación anterior. Tras la aprobación de la tarjeta, el correo y la ventana de verificación también dependen del backend de negocio; el ensayo local solo muestra una simulación.
+La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. En la integración real la solicitud del código debe iniciarse solo después de que el backend confirme la carga del comprobante; seleccionar un archivo no es suficiente. El backend debe validar formato, contenido y tamaño (máximo 250,000 bytes). En la maqueta, tras validar los campos y pulsar Continuar, se abre una ventana con un código simulado; ningún archivo o correo sale del navegador. Si el comprobante cambia, debe invalidarse la verificación anterior. Tras la aprobación de la tarjeta, el correo y la ventana de verificación también dependen del backend de negocio; el ensayo local solo muestra una simulación.
 
 ### Ejemplos conceptuales para el código
 

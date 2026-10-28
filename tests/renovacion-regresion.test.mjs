@@ -311,14 +311,17 @@ test("archivos admitidos no abren la verificación antes de continuar y los inv�
     const receipt = page.locator("#receipt");
     assert.match(await receipt.getAttribute("accept"), /\.jpg/);
     for (const [name, mimeType] of [["prueba.jpg", "image/jpeg"], ["prueba.jpeg", "image/jpeg"], ["prueba.png", "image/png"], ["prueba.pdf", "application/pdf"]]) {
-      await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(500000) });
+      await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(250000) });
       assert.equal(await page.locator("#code-dialog").isVisible(), false);
       assert.equal(await page.locator("#code-request-message").isVisible(), false);
     }
-    for (const [name, mimeType, size] of [["prueba.pdf", "application/pdf", 500001], ["prueba.exe", "application/octet-stream", 1], ["falso.pdf", "image/png", 1], ["vacio.pdf", "application/pdf", 0]]) {
+    for (const [name, mimeType, size, message] of [["prueba.pdf", "application/pdf", 250001, /peso máximo.*250 KB/i], ["prueba.exe", "application/octet-stream", 1, /Formato no admitido/i], ["falso.pdf", "image/png", 1, /Formato no admitido/i], ["vacio.pdf", "application/pdf", 0, /archivo está vacío/i]]) {
       await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(size) });
       assert.equal(await page.locator("#code-entry").isVisible(), false);
-      assert.match(await page.locator("#code-request-message").innerText(), /500 KB/);
+      assert.match(await page.locator("#code-request-message").innerText(), message);
+      await page.locator("#simulate-renewal").click();
+      assert.equal(await page.locator("#code-dialog").isVisible(), false);
+      assert.match(await page.locator("#code-request-message").innerText(), message);
     }
   });
 });
