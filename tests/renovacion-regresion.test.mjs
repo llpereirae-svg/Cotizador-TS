@@ -207,7 +207,7 @@ test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente",
 test("los bancos se muestran en el desplegable solo para transferencia", async () => {
   await withPage(async page => {
     const bankLabels = await page.locator("#bank option").allTextContents();
-    assert.deepEqual(bankLabels, ["Banco Pacífico", "Pichincha", "ProCredit"]);
+    assert.deepEqual(bankLabels, ["Pacífico", "Pichincha", "Procredit"]);
     const details = page.locator(".bank-details");
     assert.equal(await details.locator("summary").innerText(), "Ver datos bancarios para transferir");
     await details.locator("summary").focus();
