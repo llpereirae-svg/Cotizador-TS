@@ -2,11 +2,12 @@ const button = document.querySelector('#start');
 const status = document.querySelector('#status');
 
 button.addEventListener('click', async () => {
+  if (!document.querySelector('#test-terms').checked) { status.textContent = 'Acepta los términos de prueba para continuar.'; return; }
   button.disabled = true;
   status.textContent = 'Preparando la operación de prueba…';
   try {
     const response = await fetch('/sandbox-payphone/reservar', {
-      method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ monthly: 1 })
+      method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ monthly: 1, termsAccepted: true })
     });
     if (!response.ok) throw new Error('La reserva no está disponible.');
     const config = await response.json();

@@ -1,5 +1,6 @@
 const status = document.querySelector('#local-payphone-status');
 const field = document.querySelector('[data-monthly]');
+const terms = document.querySelector('#card-terms');
 let ready = false;
 let wantsCard = false;
 let started = false;
@@ -22,8 +23,8 @@ function protectOperation(monthly, paymentState) {
     document.querySelector('#pending-message p').textContent = 'Hay una operación de prueba activa. Confirma su estado antes de intentar otro método.';
   }
   for (const selector of ['[data-monthly]', '[data-increase]', '[data-decrease]']) document.querySelector(selector).disabled = true;
+  terms.disabled = true;
 }
-
 try {
   const response = await fetch('/sandbox-payphone/estado');
   if (!response.ok) throw new Error();
@@ -33,6 +34,7 @@ try {
     status.textContent = active.status === 'approved'
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
+    if (active.status === 'approved') document.dispatchEvent(new CustomEvent('sandbox-payment-approved'));
   } else {
     ready = true;
     if (wantsCard) void prepareCajita();
@@ -43,6 +45,7 @@ try {
 
 async function prepareCajita() {
   if (!ready || !wantsCard || started) return;
+  if (!terms.checked) { status.textContent = 'Acepta los términos antes de abrir la Cajita.'; return; }
   const monthly = Number(field.value);
   if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) {
     status.textContent = 'Ingresa entre 1 y 10,000 documentos mensuales para la prueba.';
@@ -53,7 +56,7 @@ async function prepareCajita() {
   status.textContent = 'Preparando la operación de prueba…';
   try {
     const response = await fetch('/sandbox-payphone/reservar', { method: 'POST',
-      headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ monthly }) });
+      headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ monthly, termsAccepted: true }) });
     if (!response.ok) throw new Error();
     const config = await response.json();
     const css = document.createElement('link');

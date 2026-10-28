@@ -46,18 +46,20 @@ test('reserva local, retorno validado y confirmación con proveedor simulado', a
     assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers: {
       cookie, origin: 'https://evil.example', 'x-local-sandbox': '1' } })).status, 403);
     const headers = { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
-    const reserved = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1 }) });
+    assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1 }) })).status, 400);
+    const reserved = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1, termsAccepted: true }) });
     assert.equal(reserved.status, 200);
     const config = JSON.parse(reserved.body);
     assert.equal(config.amount, 966);
-    assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1 }) })).status, 409);
+    assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1, termsAccepted: true }) })).status, 409);
     assert.equal((await send(port, '/respuesta-payphone.html?id=42&clientTransactionId=bad', { headers: { cookie } })).status, 400);
     const callback = `/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`;
     assert.equal((await send(port, callback)).status, 403);
     const result = await send(port, callback, { headers: { cookie } });
-    assert.match(result.body, /approved/);
+    assert.equal(result.status, 303);
+    assert.equal(result.headers.location, '/renovacion.html');
     assert.equal(calls, 1);
-    assert.match((await send(port, callback, { headers: { cookie } })).body, /approved/);
+    assert.equal((await send(port, callback, { headers: { cookie } })).status, 303);
     assert.equal(calls, 1);
   } finally {
     app.server.close(); await once(app.server, 'close'); app.closeStore();
@@ -88,6 +90,7 @@ test('el navegador prepara la Cajita con SDK simulado sin contactar a PayPhone',
     });
     const page = await context.newPage();
     await page.goto(`http://localhost:${port}/sandbox-payphone`);
+    await page.locator('#test-terms').check();
     await page.getByRole('button', { name: 'Preparar Cajita de prueba' }).click();
     await page.waitForFunction(() => document.querySelector('#status').textContent !== 'Preparando la operación de prueba…', { timeout: 5000 });
     assert.equal(await page.locator('#pp-button').innerText(), 'Cajita simulada', await page.locator('#status').innerText());
@@ -125,6 +128,9 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(reservations, 0, 'Abrir la página no debe reservar una operación.');
     await page.locator('[data-monthly]').fill('0');
     await page.locator('[data-method="tarjeta"]').click();
+    await page.waitForFunction(() => document.querySelector('#local-payphone-status').textContent.includes('Acepta'));
+    assert.equal(reservations, 0, 'Sin aceptar términos no debe abrirse la Cajita.');
+    await page.locator('#card-terms').check();
     await page.waitForFunction(() => document.querySelector('#local-payphone-status').textContent.includes('10,000'));
     assert.equal(reservations, 0, 'Una cantidad inválida no debe reservar.');
     await page.locator('[data-monthly]').fill('10');
@@ -141,7 +147,9 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(await page.locator('[data-monthly]').inputValue(), '10');
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.goto(`http://localhost:${port}/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`);
-    await page.goto(`http://localhost:${port}/renovacion.html`);
+    await page.locator('#code-dialog').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#code-dialog').innerText(), /no se ha enviado ningún correo/i);
+    await page.locator('#code-dialog [data-close-dialog]').click();
     await page.waitForFunction(() => document.querySelector('[data-monthly]').disabled);
     await page.locator('[data-method="tarjeta"]').click();
     assert.match(await page.locator('#local-payphone-status').innerText(), /fue aprobada/);
@@ -170,14 +178,14 @@ test('el retorno conserva la sesión y la reserva al reiniciar el servidor', asy
     const page = await send(port, '/sandbox-payphone');
     const cookie = page.headers['set-cookie'][0].split(';')[0];
     const headers = { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
-    const result = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1 }) });
+    const result = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1, termsAccepted: true }) });
     const config = JSON.parse(result.body);
     app.server.close(); await once(app.server, 'close'); app.closeStore(); app = null;
     app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath, fetchImpl: fakeFetch });
     app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
     port = app.server.address().port;
     const callback = await send(port, `/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`, { headers: { cookie } });
-    assert.match(callback.body, /approved/);
+    assert.equal(callback.status, 303);
     assert.equal(calls, 1);
   } finally {
     if (app) { app.server.close(); await once(app.server, 'close'); app.closeStore(); }

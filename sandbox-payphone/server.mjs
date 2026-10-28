@@ -93,8 +93,9 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       if (req.headers.origin !== origin || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
       let body = '';
       for await (const chunk of req) { body += chunk; if (body.length > 256) return html(res, 413, 'Solicitud demasiado grande.'); }
-      let monthly;
-      try { monthly = JSON.parse(body).monthly; } catch { return html(res, 400, 'Cantidad inválida.'); }
+      let monthly, termsAccepted;
+      try { ({ monthly, termsAccepted } = JSON.parse(body)); } catch { return html(res, 400, 'Cantidad inválida.'); }
+      if (termsAccepted !== true) return html(res, 400, 'Acepta los términos antes de continuar.');
       if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) return html(res, 400, 'Cantidad inválida.');
       const quote = calculateQuote(monthly);
       const clientTransactionId = 'local-' + randomUUID();
@@ -119,10 +120,12 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       }
       const order = store.get(clientTransactionId);
       if (!order) return html(res, 404, 'Orden no encontrada; no se confirmó ningún pago.');
+      if (order.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html' }); return res.end(); }
       if (order.status !== 'reserved') {
         return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(order.status)}. No reintentes si sigue pendiente.`);
       }
       const result = await client.confirm({ id, clientTransactionId, order });
+      if (result.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html' }); return res.end(); }
       return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(result.status)}. Si está pendiente, verifica el resultado con PayPhone antes de reintentar.`);
     }
     return html(res, 404, 'Página no encontrada.');
