@@ -7,7 +7,7 @@
   <title>Renueva tu plan | TributaSoft</title>
   <link rel="icon" href="./assets/tributasoft-logo.png">
   <link rel="stylesheet" href="./assets/base.css">
-  <link rel="stylesheet" href="./renovacion.css?v=20261028-16">
+  <link rel="stylesheet" href="./renovacion.css?v=20261028-17">
 </head>
 <body>
   <header class="site-header">
@@ -68,7 +68,7 @@
           <div class="payment-options" role="tablist" aria-label="Forma de pago">
             <button class="payment-option is-selected" id="tab-banco" type="button" role="tab" data-method="banco" aria-selected="true" aria-controls="bank-panel">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-5 9 5M4 10h16M5 20h14M7 10v8M12 10v8M17 10v8M3 21h18"/></svg>
-              <span><strong>Transferencia/Depósito</strong></span>
+              <span><strong>Transferencia/<wbr>Depósito</strong></span>
               <span class="option-indicator" aria-hidden="true"></span>
             </button>
             <button class="payment-option" id="tab-tarjeta" type="button" role="tab" data-method="tarjeta" aria-selected="false" aria-controls="card-panel" tabindex="-1">
@@ -109,8 +109,10 @@
           </div>
           <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
+            <div class="card-overview" aria-label="Resumen antes de pagar"><p>Vas a contratar <strong id="card-documents">—</strong> documentos por año.</p><p>Total anual: <strong id="card-total">—</strong></p></div>
             <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><a class="text-link" href="#terms-dialog" data-open-terms>términos y condiciones, política de protección de datos.</a></span></div>
-            <div class="card-placeholder" id="payphone-container">
+            <div class="card-confirm-actions" id="card-confirm-actions"><button type="button" class="button-secondary" id="card-modify">Modificar</button><button type="button" class="button-primary" id="card-continue" disabled>Continuar</button></div>
+            <div class="card-placeholder" id="payphone-container" hidden>
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
               <div><strong>Pago con tarjeta no disponible</strong><p>Este método estará disponible más adelante.</p></div>
             </div>
@@ -149,6 +151,6 @@
     </div>
   </dialog>
   <script id="customer-context" type="application/json">{"tipoIdentificacion":"RUC","identificacion":"0999999999001","nombre":"Cliente de ejemplo","simulado":true}</script>
-  <script type="module" src="./renovacion.js?v=20261028-12"></script>
+  <script type="module" src="./renovacion.js?v=20261028-13"></script>
 </body>
 </html>
