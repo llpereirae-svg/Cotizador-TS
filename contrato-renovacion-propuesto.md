@@ -6,6 +6,10 @@
 
 El backend identifica la cuenta mediante un mecanismo seguro acordado y devuelve los datos que corresponde mostrar. Un RUC recibido en la URL no autoriza una renovación.
 
+Hay dos entradas funcionales: la URL pública abre el cotizador sin requerir una cuenta; la opción Renovar dentro del ERP abre la renovación para la cuenta autenticada. El backend debe determinar la cuenta, comprobar que la persona tiene permiso para renovarla y entregar a la interfaz el RUC asociado. La maqueta utiliza un RUC ficticio: no consulta el ERP ni demuestra una sesión real.
+
+Referencia de la captura del sistema anterior: la entrada de renovación al cotizador se observó como una petición GET con parámetros de RUC y nombre en la URL; el cálculo posterior se envió por POST a la misma página y recibió una respuesta parcial de JSF. Esta observación no demuestra cómo se obtiene o valida la identidad en el servidor, ni obliga a replicar esa ruta o el mecanismo JSF. No guardar URLs concretas con datos personales, cookies o valores de sesión. El contrato y la autenticación finales deben acordarse con el desarrollador del backend.
+
 El backend debe calcular y validar la cotización y la vigencia definitiva. La interfaz puede mostrar una estimación provisional. Para las pruebas visuales se usa el patrón observado: seis dólares fijos más veinte centavos por documento anual, con IVA del 15 %. Esto no sustituye la tarifa configurada por el servidor.
 
 ## Código de correo
