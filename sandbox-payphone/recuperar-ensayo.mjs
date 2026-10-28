@@ -18,11 +18,13 @@ export async function recoveryDialogue({ store, input = stdin, output = stdout }
   } else {
     say(`Identificador de la orden de prueba: ${candidate.clientTransactionId}`);
     say('Verifica con PayPhone, usando ese identificador, que no existe transacción o que está cancelada.');
+    say('Si no ingresaste datos de tarjeta NI enviaste un pago, puedes declarar NO PAGUE.');
+    say('Antes de continuar, cierra todas las pestañas de la Cajita y detén el servidor.');
     say('Un error visible en la Cajita, cerrar la ventana o esperar no confirma el resultado.');
     const prompt = createInterface({ input, output });
     try {
-      const answer = (await prompt.question('Escribe NO EXISTE o CANCELADA solo después de verificarlo; Enter para salir: ')).trim();
-      const attestation = answer === 'NO EXISTE' ? 'no_transaction' : answer === 'CANCELADA' ? 'canceled' : null;
+      const answer = (await prompt.question('Escribe NO PAGUE, NO EXISTE o CANCELADA solo si corresponde; Enter para salir: ')).trim();
+      const attestation = answer === 'NO PAGUE' ? 'not_submitted' : answer === 'NO EXISTE' ? 'no_transaction' : answer === 'CANCELADA' ? 'canceled' : null;
       if (!attestation) {
         say('Sin declaración de verificación; la reserva sigue bloqueada.');
       } else if (store.closeManually({ clientTransactionId: candidate.clientTransactionId, attestation })) {

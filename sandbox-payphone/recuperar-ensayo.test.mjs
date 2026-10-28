@@ -49,3 +49,29 @@ test('el diálogo no solicita ni permite cierre de una operación en confirmaci�
     assert.equal(store.get(order.clientTransactionId).status, 'confirming');
   } finally { store.close(); }
 });
+
+test('NO PAGUE declara explícitamente que no se ingresó tarjeta ni se envió pago', async () => {
+  const store = createLocalAttemptStore({ filename: ':memory:' });
+  try {
+    assert.equal(store.reserve(order), true);
+    const printed = await answerDialogue(store, 'NO PAGUE');
+    assert.match(printed, /Cierre manual registrado/);
+    assert.equal(store.get(order.clientTransactionId).status, 'closed_manually');
+    assert.equal(store.reserve({ ...order, clientTransactionId: 'other' }), true);
+  } finally { store.close(); }
+});
+
+test('NO PAGUE no permite cerrar una operación en confirmación, pendiente o aprobada', async () => {
+  for (const status of ['confirming', 'pending', 'approved']) {
+    const store = createLocalAttemptStore({ filename: ':memory:' });
+    try {
+      assert.equal(store.reserve(order), true);
+      const attempt = { renewalRef: order.renewalRef, clientTransactionId: order.clientTransactionId, providerTransactionId: 42 };
+      assert.equal(store.claim(attempt), true);
+      if (status !== 'confirming') assert.equal(store.record({ ...attempt, status }), true);
+      const printed = await answerDialogue(store, 'NO PAGUE');
+      assert.match(printed, /no puede cerrarse manualmente/);
+      assert.equal(store.get(order.clientTransactionId).status, status);
+    } finally { store.close(); }
+  }
+});

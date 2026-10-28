@@ -54,10 +54,13 @@ node .\sandbox-payphone\recuperar-ensayo.mjs
 ```
 
 El programa mostrará el identificador de la orden y pedirá una declaración
-manual. Antes de responder, verifica con PayPhone usando ese identificador que
+manual. Si no ingresaste datos de tarjeta ni enviaste un pago, y cerraste todas
+las pestañas de la Cajita, puedes escribir `NO PAGUE`. Se registra como tu
+declaración, no como confirmación de PayPhone. De lo contrario, verifica con
+PayPhone usando ese identificador que
 no existe ninguna transacción o que está cancelada. Un mensaje de error, una
 lista vacía sin verificar el ambiente, cerrar el navegador o esperar no son por
-sí solos confirmación. Si no puedes verificarlo, pulsa Enter: la orden seguirá
+sí solos confirmación. Si no aplica `NO PAGUE` y no puedes verificarlo, pulsa Enter: la orden seguirá
 bloqueada. Si la confirmación es concluyente, escribe `NO EXISTE` o `CANCELADA`,
 según corresponda. El cierre se conserva como declaración manual en el historial;
 no se presenta como confirmación automática de PayPhone. Solo se admite para

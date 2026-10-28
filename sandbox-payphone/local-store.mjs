@@ -27,10 +27,35 @@ export function createLocalAttemptStore({ filename } = {}) {
     CREATE TABLE IF NOT EXISTS sandbox_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS sandbox_manual_resolutions (
       client_tx_id TEXT PRIMARY KEY REFERENCES sandbox_attempts(client_tx_id),
-      attestation TEXT NOT NULL CHECK (attestation IN ('no_transaction', 'canceled')),
+      attestation TEXT NOT NULL CHECK (attestation IN ('no_transaction', 'canceled', 'not_submitted')),
       recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  // Las bases creadas antes no aceptaban la declaración not_submitted.
+  // Migrar dentro de una transacción conserva todas las declaraciones previas.
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const schema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sandbox_manual_resolutions'").get()?.sql;
+    if (!schema) throw new Error('No se encontró el historial de declaraciones.');
+    if (!schema.includes("'not_submitted'")) {
+      db.exec(`
+        CREATE TABLE sandbox_manual_resolutions_new (
+          client_tx_id TEXT PRIMARY KEY REFERENCES sandbox_attempts(client_tx_id),
+          attestation TEXT NOT NULL CHECK (attestation IN ('no_transaction', 'canceled', 'not_submitted')),
+          recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO sandbox_manual_resolutions_new (client_tx_id, attestation, recorded_at)
+          SELECT client_tx_id, attestation, recorded_at FROM sandbox_manual_resolutions;
+        DROP TABLE sandbox_manual_resolutions;
+        ALTER TABLE sandbox_manual_resolutions_new RENAME TO sandbox_manual_resolutions;
+      `);
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    db.close();
+    throw error;
+  }
   const insert = db.prepare(`INSERT INTO sandbox_attempts
     (client_tx_id, renewal_ref, amount_cents, currency, monthly, status)
     VALUES (?, ?, ?, ?, ?, 'reserved')`);
@@ -86,7 +111,7 @@ export function createLocalAttemptStore({ filename } = {}) {
     /** Registra una declaración manual, no una confirmación automática del proveedor. */
     closeManually({ clientTransactionId, attestation } = {}) {
       const id = requiredText(clientTransactionId, 'clientTransactionId');
-      if (!['no_transaction', 'canceled'].includes(attestation)) throw new TypeError('Declaración inválida.');
+      if (!['no_transaction', 'canceled', 'not_submitted'].includes(attestation)) throw new TypeError('Declaración inválida.');
       db.exec('BEGIN IMMEDIATE');
       try {
         const row = db.prepare('SELECT status, provider_id AS providerTransactionId FROM sandbox_attempts WHERE client_tx_id = ?').get(id);
