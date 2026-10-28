@@ -44,8 +44,10 @@ pertenece realmente a ese entorno.
 La base SQLite se crea en una carpeta temporal del sistema, fuera del repo. Se
 mantiene una sola orden de demostración activa: recargas o procesos adicionales
 no habilitan un pago duplicado. Si la respuesta es desconocida o se agota la
-espera, queda bloqueada para conciliación. Ocultar la Cajita tras un minuto no
-confirma cancelación. El proveedor documenta reversión automática si una
+espera, queda bloqueada para conciliación. El formulario no se cierra por un
+temporizador de la página mientras se ingresan datos. El límite de un minuto se
+aplica a la confirmación desde el servidor, no al llenado de la Cajita; no se
+ha verificado que el SDK exponga el momento de envío del pago. El proveedor documenta reversión automática si una
 transacción no se confirma en cinco minutos, pero el estado debe comprobarse.
 No borres ni restablezcas una orden pendiente para reintentar sin verificarla.
 Si la Cajita no llega a abrir por un error de configuración, cierra la pestaña y

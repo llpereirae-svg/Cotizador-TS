@@ -105,13 +105,16 @@ test('el navegador prepara la Cajita con SDK simulado sin contactar a PayPhone',
       return route.abort();
     });
     const page = await context.newPage();
+    await page.clock.install();
     await page.goto(`http://localhost:${port}/sandbox-payphone`);
     await page.locator('#test-terms').check();
     await page.getByRole('button', { name: 'Preparar Cajita de prueba' }).click();
     await page.waitForFunction(() => document.querySelector('#status').textContent !== 'Preparando la operación de prueba…', { timeout: 5000 });
     assert.equal(await page.locator('#pp-button').innerText(), 'Cajita simulada', await page.locator('#status').innerText());
     assert.equal(await page.evaluate(() => window.testAmount), 966);
-    assert.match(await page.locator('#status').innerText(), /Cajita preparada/);
+    await page.clock.fastForward(61000);
+    assert.equal(await page.locator('#pp-button').isVisible(), true);
+    assert.equal(await page.locator('#status').innerText(), '');
   } finally {
     await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore();
   }
@@ -138,6 +141,7 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
       return route.abort();
     });
     const page = await context.newPage();
+    await page.clock.install();
     let reservations = 0;
     page.on('request', request => { if (request.url().endsWith('/sandbox-payphone/reservar')) reservations++; });
     await page.goto(`http://localhost:${port}/renovacion.html`);
@@ -154,6 +158,9 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     await page.locator('[data-method="tarjeta"]').click();
     const config = await (await reservation).json();
     await page.waitForFunction(() => window.testAmount === 3450);
+    await page.clock.fastForward(61000);
+    assert.equal(await page.locator('#pp-button').isVisible(), true);
+    assert.equal(await page.locator('#local-payphone-status').innerText(), '');
     await page.locator('[data-method="banco"]').click();
     await page.locator('[data-method="tarjeta"]').click();
     assert.equal(reservations, 1, 'Cambiar de método no debe crear otro intento.');

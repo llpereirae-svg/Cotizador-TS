@@ -67,11 +67,7 @@ async function prepareCajita() {
     await new Promise((resolve, reject) => { sdk.onload = resolve; sdk.onerror = reject; document.head.append(sdk); });
     if (typeof window.PPaymentButtonBox !== 'function') throw new Error();
     new window.PPaymentButtonBox(config).render('pp-button');
-    status.textContent = 'Cajita de prueba preparada. El resultado se confirmará en el servidor.';
-    setTimeout(() => {
-      document.querySelector('#pp-button').hidden = true;
-      status.textContent = 'La espera superó un minuto. Verifica el estado con PayPhone antes de reintentar; esto no confirma una cancelación.';
-    }, 60000);
+    status.textContent = '';
   } catch {
     status.textContent = 'No se pudo preparar la Cajita. Confirma el estado de la operación antes de reintentar.';
   }

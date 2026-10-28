@@ -21,11 +21,7 @@ button.addEventListener('click', async () => {
     await new Promise((resolve, reject) => { sdk.onload = resolve; sdk.onerror = reject; document.head.append(sdk); });
     if (typeof window.PPaymentButtonBox !== 'function') throw new Error('La Cajita no está disponible.');
     new window.PPaymentButtonBox(config).render('pp-button');
-    status.textContent = 'Cajita preparada. El resultado debe confirmarse después de pagar.';
-    setTimeout(() => {
-      document.querySelector('#pp-button').hidden = true;
-      status.textContent = 'La espera superó un minuto. El estado es desconocido: verifica con PayPhone antes de reintentar. Esto no confirma una cancelación.';
-    }, 60000);
+    status.textContent = '';
   } catch {
     status.textContent = 'No se pudo preparar la Cajita. La operación queda pendiente; verifica su estado antes de reintentar.';
   }
