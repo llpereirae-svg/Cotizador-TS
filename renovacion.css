@@ -75,10 +75,10 @@
 .resolution-button { margin-top: 14px; width: 100%; }
 #transfer-pending { margin-bottom: 18px; }
 
-.bank-details { margin: 18px 0; border: 1px solid #dce5ef; border-radius: 9px; background: #f8fafc; }
-.bank-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; color: var(--navy); font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.bank-details { margin: 18px 0; border: 1px solid #f1c49e; border-radius: 9px; background: #fffaf5; }
+.bank-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; color: #a64b00; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
 .bank-details summary::-webkit-details-marker { display: none; }
-.bank-details summary::after { content: "+"; color: var(--navy); font-size: 20px; line-height: 1; font-weight: 400; }
+.bank-details summary::after { content: "+"; color: #a64b00; font-size: 20px; line-height: 1; font-weight: 400; }
 .bank-details[open] summary::after { content: "−"; }
 .bank-details-body { padding: 0 15px 14px; color: #52657b; font-size: 13px; }
 .bank-details-body p { margin: 0 0 12px; }
@@ -93,7 +93,7 @@
 .copy-account .icon { width: 17px; height: 17px; }
 .copy-account:hover { background: #eef4fa; }
 .copy-message:not(:empty) { margin: 10px 0 0; color: var(--navy); }
-.bank-warning { padding: 11px 12px; background: #fff8ee; border-radius: 8px; color: #694c2c; }
+.demo-disclosure { margin: 10px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
 
 /* Las cifras y los controles permanecen en su lugar durante los cambios. */
 @media (prefers-reduced-motion: no-preference) {

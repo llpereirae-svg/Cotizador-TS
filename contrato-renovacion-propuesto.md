@@ -58,7 +58,7 @@ Ejemplo conceptual de datos que la interfaz necesitaría entregar o confirmar; n
 
 El servidor debe validar la identidad y recalcular los importes, la cantidad anual y la fecha. La fecha mostrada por la maqueta es una estimación calculada localmente y no sustituye el vencimiento autorizado por el backend. Los identificadores de bancos son propuestos y deben acordarse con el backend. La referencia al comprobante y la verificación son ejemplos de contrato, no identificadores reales. La selección del archivo en la maqueta nunca sale del navegador. El mecanismo y las reglas de carga segura deben acordarse con el backend.
 
-Si `tipoOperacion` es `deposito`, la maqueta requiere además `tipoDeposito`, con valor `cheque` o `efectivo`. Este campo no se incluye para una transferencia. Los nombres y valores son propuestos; el backend debe acordarlos y validarlos antes de la integración.
+La maqueta distingue depósito y transferencia con `tipoOperacion`; no solicita tipo de depósito. Los nombres y valores son propuestos y deben acordarse y validarse con el backend antes de integrar.
 
 ## Tarjeta
 

@@ -7,7 +7,7 @@
   <title>Renueva tu plan | TributaSoft</title>
   <link rel="icon" href="./assets/tributasoft-logo.png">
   <link rel="stylesheet" href="./assets/base.css">
-  <link rel="stylesheet" href="./renovacion.css">
+  <link rel="stylesheet" href="./renovacion.css?v=20261028-2">
 </head>
 <body>
   <header class="site-header">
@@ -80,11 +80,12 @@
             <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito.</p></div></div>
             <div id="transfer-pending" class="pending-message" role="status" hidden><strong>Pago con tarjeta pendiente</strong><p>Confirma el estado del pago anterior antes de completar otro.</p></div>
             <details class="bank-details">
-              <summary>Ver datos bancarios</summary>
+              <summary><span>Ver datos bancarios para transferir</span></summary>
               <div class="bank-details-body">
-                <p class="bank-owner"><strong>Titular:</strong> TributaSoft S.A<br><strong>RUC:</strong> 0992703601001</p>
-                <p class="bank-warning"><strong>Vista previa:</strong> no realices transferencias desde esta maqueta; no procesa pagos.</p>
                 <ul>
+                  <li><div><strong>Titular</strong><span class="copy-value">TributaSoft S.A</span></div><button class="copy-account" type="button" aria-label="Copiar nombre del titular"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></li>
+                  <li><div><strong>RUC</strong><span class="copy-value">0992703601001</span></div><button class="copy-account" type="button" aria-label="Copiar RUC del titular"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></li>
+                  <li><div><strong>Correo electrónico</strong><span class="copy-value">cobranza@tributasoft.ec</span></div><button class="copy-account" type="button" aria-label="Copiar correo electrónico"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></li>
                   <li><div><strong>Banco del Pacífico</strong><span>Ahorros</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>1043401667</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco del Pacífico"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></span></li>
                   <li><div><strong>Banco Pichincha</strong><span>Corriente</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>2100146073</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco Pichincha"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></span></li>
                   <li><div><strong>Banco ProCredit</strong><span>Ahorros</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>17030123262</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco ProCredit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></button></span></li>
@@ -93,15 +94,15 @@
               </div>
             </details>
             <div class="fields-grid">
-              <div><label class="field-label" for="bank">Nombre del banco</label><select class="field-control" id="bank"><option value="">Selecciona un banco</option><option value="banco-pacifico-ahorros">Banco del Pacífico</option><option value="banco-pichincha-corriente">Banco Pichincha</option><option value="banco-procredit-ahorros">Banco ProCredit</option></select></div>
+              <div><label class="field-label" for="bank">Nombre del banco</label><select class="field-control" id="bank"><option value="banco-pacifico-ahorros">Banco Pacífico</option><option value="banco-pichincha-corriente">Pichincha</option><option value="banco-procredit-ahorros">ProCredit</option></select></div>
               <div><label class="field-label" for="payment-date">Fecha del pago</label><input class="field-control" id="payment-date" type="date"></div>
               <div><label class="field-label" for="operation">Forma de pago</label><select class="field-control" id="operation"><option value="deposito">Depósito</option><option value="transferencia">Transferencia</option></select></div>
-              <div class="field-full" id="deposit-type-field"><label class="field-label" for="deposit-type">Tipo de depósito</label><select class="field-control" id="deposit-type" required><option value="">Selecciona una opción</option><option value="cheque">Cheque</option><option value="efectivo">Efectivo</option></select></div>
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">Formatos admitidos: JPG, JPEG, PNG o PDF.<br>Tamaño máximo: 500 KB.</p></div>
             </div>
             <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
             <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones</button> (borrador).</span></div>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
+            <p class="demo-disclosure">Demostración: no envía comprobantes ni procesa pagos.</p>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
            </div>
           </div>
@@ -141,6 +142,6 @@
       <p class="payment-notice">El pago será revisado. Si no coincide, el servicio podría suspenderse y aplicarse un cargo administrativo de $10 más IVA, sujeto a las condiciones definitivas.</p>
     </div>
   </dialog>
-  <script type="module" src="./renovacion.js"></script>
+  <script type="module" src="./renovacion.js?v=20261028-2"></script>
 </body>
 </html>
