@@ -1,0 +1,2 @@
+.under-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 4px; color: #586a7e; font-size: 13px; }
+.under-note-dot { flex: 0 0 auto; width: 6px; height: 6px; margin-top: 7px; background: #ef8a31; border-radius: 50%; }

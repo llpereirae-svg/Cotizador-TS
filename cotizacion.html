@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Cotiza tu plan | TributaSoft</title>
+  <link rel="icon" href="./assets/tributasoft-logo.png">
+  <link rel="stylesheet" href="./assets/base.css">
+  <link rel="stylesheet" href="./cotizacion.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand" aria-label="TributaSoft">
+        <img src="./assets/tributasoft-logo.png" alt="">
+        <span class="brand-word" aria-hidden="true"><span class="brand-tributa">Tributa</span><span class="brand-soft">Soft</span></span>
+      </div>
+      <span class="preview-mark">Vista de prueba</span>
+    </div>
+  </header>
+  <main class="page">
+    <div class="page-intro">
+      <p class="kicker">Cotización pública</p>
+      <h1>Calcula tu plan anual</h1>
+      <p class="intro-copy">Elige cuántos documentos crees que emitirás al mes y conoce el valor estimado de tu plan.</p>
+    </div>
+    <div class="layout">
+      <div class="main-column">
+        <section class="card" aria-labelledby="consumo-title">
+          <div class="card-body">
+            <div class="section-heading">
+              <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8.5 12h7M8.5 15.5h7"/></svg></span>
+              <div><h2 id="consumo-title">Tu consumo estimado</h2><p>Cuéntanos cuánto necesitas facturar.</p></div>
+            </div>
+            <div class="form-section">
+              <label class="field-label" for="monthly">Documentos promedio por mes</label>
+              <div class="stepper">
+                <button type="button" data-decrease aria-label="Reducir documentos por mes">−</button>
+                <input id="monthly" data-monthly type="number" value="10" min="1" step="1" inputmode="numeric" aria-describedby="monthly-hint quote-error">
+                <button type="button" data-increase aria-label="Aumentar documentos por mes">+</button>
+              </div>
+              <p id="monthly-hint" class="field-hint">Puedes cambiar esta cantidad para comparar opciones.</p>
+              <p id="quote-error" data-quote-error class="field-error" hidden>Ingresa un número entero mayor que cero.</p>
+            </div>
+            <div class="basis-note">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+              <p>Calculamos una estimación para 12 meses a partir de tu promedio mensual.</p>
+            </div>
+          </div>
+        </section>
+        <div class="under-note"><span class="under-note-dot" aria-hidden="true"></span><span>Elige una cantidad que se ajuste a tu ritmo de facturación.</span></div>
+      </div>
+      <aside class="card summary-card" aria-label="Resumen de la cotización">
+        <div class="card-body">
+          <div class="summary-top"><div><h2>Tu plan anual</h2><p>Resumen de tu cotización</p></div><span class="summary-period">12 meses</span></div>
+          <div class="annual-docs"><strong data-quote-value="annual">120</strong><span>documentos al año</span></div>
+          <div class="summary-lines" aria-live="polite" aria-atomic="true">
+            <p class="summary-line"><span>Base imponible</span><strong data-quote-value="base">$30.00</strong></p>
+            <p class="summary-line"><span>IVA</span><strong data-quote-value="tax">$4.50</strong></p>
+          </div>
+          <div class="summary-total"><span>Total estimado</span><strong data-quote-value="total">$34.50</strong></div>
+          <p class="summary-caption">Valores ilustrativos para esta vista. La cotización final se confirmará antes de continuar.</p>
+        </div>
+      </aside>
+    </div>
+    <p class="note-footer">Vista previa · No se realizan pagos ni se envían datos.</p>
+  </main>
+  <script type="module" src="./cotizacion.js"></script>
+</body>
+</html>
