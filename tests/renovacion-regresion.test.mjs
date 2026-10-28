@@ -86,9 +86,9 @@ test("los bancos se muestran en el desplegable solo para transferencia", async (
   await withPage(async page => {
     const bankLabels = await page.locator("#bank option").allTextContents();
     assert.deepEqual(bankLabels.slice(1), [
-      "Banco del Pacífico (ahorros)",
-      "Banco Pichincha (corriente)",
-      "Banco ProCredit (ahorros)"
+      "Banco del Pacífico",
+      "Banco Pichincha",
+      "Banco ProCredit"
     ]);
     const details = page.locator(".bank-details");
     assert.equal(await details.locator("summary").innerText(), "Ver datos bancarios");
@@ -103,6 +103,61 @@ test("los bancos se muestran en el desplegable solo para transferencia", async (
     assert.equal(await details.isVisible(), false);
     assert.equal(await page.locator("#payphone-container").isVisible(), true);
     assert.equal(await page.locator("#payphone-container input").count(), 0);
+  });
+});
+
+test("las tres formas de pago muestran el panel correspondiente", async () => {
+  await withPage(async page => {
+    const methods = page.locator("[data-method]");
+    assert.deepEqual(await methods.evaluateAll(nodes => nodes.map(node => node.dataset.method)), ["deposito", "transferencia", "tarjeta"]);
+    assert.equal(await page.locator("#payment-title").innerText(), "Forma de Pago");
+    for (const method of ["deposito", "transferencia"]) {
+      await page.locator(`[data-method=${method}]`).click();
+      const panel = method === "deposito" ? "#deposit-panel" : "#transfer-panel";
+      assert.equal(await page.locator(panel).isVisible(), true);
+      assert.equal(await page.locator("#card-panel").isVisible(), false);
+      assert.equal(await page.locator(`[data-method=${method}]`).getAttribute("aria-selected"), "true");
+    }
+    await page.locator("[data-method=tarjeta]").click();
+    assert.equal(await page.locator("#transfer-panel").isVisible(), false);
+    assert.equal(await page.locator("#card-panel").isVisible(), true);
+    assert.equal(await page.locator(".payphone-logo").getAttribute("alt"), "PayPhone");
+  });
+});
+
+test("las pestañas cambian con las flechas y conservan la opción en el formulario", async () => {
+  await withPage(async page => {
+    const deposit = page.locator("#tab-deposito");
+    const transfer = page.locator("#tab-transferencia");
+    await deposit.focus();
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await transfer.getAttribute("aria-selected"), "true");
+    assert.equal(await transfer.evaluate(node => node === document.activeElement), true);
+    assert.equal(await page.locator("#transfer-panel #bank-form").count(), 1);
+    assert.match(await page.locator("#bank-method-description").innerText(), /transferencia bancaria/);
+    await page.keyboard.press("End");
+    assert.equal(await page.locator("#card-panel").isVisible(), true);
+    await page.keyboard.press("Home");
+    assert.equal(await page.locator("#deposit-panel #bank-form").count(), 1);
+    assert.match(await page.locator("#bank-method-description").innerText(), /depósito bancario/);
+  });
+});
+
+test("copiar cuenta confirma el éxito o explica cómo copiarla manualmente", async () => {
+  await withPage(async page => {
+    await page.locator(".bank-details summary").click();
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async value => { window.copiedAccount = value; } } });
+    });
+    const row = page.locator(".bank-details li").first();
+    await row.locator(".copy-account").click();
+    assert.equal(await page.evaluate(() => window.copiedAccount), await row.locator(".bank-number strong").innerText());
+    assert.match(await page.locator(".copy-message").innerText(), /copiado/i);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("denied"); } } });
+    });
+    await row.locator(".copy-account").click();
+    assert.match(await page.locator(".copy-message").innerText(), /manualmente/i);
   });
 });
 

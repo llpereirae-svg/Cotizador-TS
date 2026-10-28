@@ -59,22 +59,25 @@
         <div class="card-body">
           <div class="section-heading">
             <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
-            <div><h2 id="payment-title">Elige cómo pagar</h2></div>
+            <div><h2 id="payment-title">Forma de Pago</h2></div>
           </div>
-          <div class="payment-options" role="group" aria-label="Método de pago">
-            <button class="payment-option is-selected" type="button" data-method="transferencia" aria-pressed="true" aria-controls="transfer-panel">
+          <div class="payment-options" role="tablist" aria-label="Forma de pago">
+            <button class="payment-option is-selected" id="tab-deposito" type="button" role="tab" data-method="deposito" aria-selected="true" aria-controls="deposit-panel">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-5 9 5M4 10h16M5 20h14M7 10v8M12 10v8M17 10v8M3 21h18"/></svg>
-              <span><strong>Transferencia o depósito</strong><small>Reporta tu pago</small></span>
-              <span class="option-check" aria-hidden="true"></span>
+              <span><strong>Depósito bancario</strong></span>
             </button>
-            <button class="payment-option" type="button" data-method="tarjeta" aria-pressed="false" aria-controls="card-panel">
+            <button class="payment-option" id="tab-transferencia" type="button" role="tab" data-method="transferencia" aria-selected="false" aria-controls="transfer-panel" tabindex="-1">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14m-3-3 3 3-3 3M20 17H6m3 3-3-3 3-3"/></svg>
+              <span><strong>Transferencia bancaria</strong></span>
+            </button>
+            <button class="payment-option" id="tab-tarjeta" type="button" role="tab" data-method="tarjeta" aria-selected="false" aria-controls="card-panel" tabindex="-1">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>
-              <span><strong>Tarjeta</strong><small>Pago con PayPhone</small></span>
-              <span class="option-check" aria-hidden="true"></span>
+              <span><strong>TC/TD</strong><img class="payphone-logo" src="./assets/payphone-logo.svg" alt="PayPhone"></span>
             </button>
           </div>
-          <div id="transfer-panel" class="method-panel">
-            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito.</p></div></div>
+          <div id="deposit-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-deposito">
+           <div id="bank-form">
+            <div class="panel-title"><div><h3>Datos de tu pago</h3><p id="bank-method-description">Completa los datos de tu depósito bancario.</p></div></div>
             <div id="transfer-pending" class="pending-message" role="status" hidden><strong>Pago con tarjeta pendiente</strong><p>Confirma el estado del pago anterior antes de completar otro.</p></div>
             <details class="bank-details">
               <summary>Ver datos bancarios</summary>
@@ -82,15 +85,15 @@
                 <p class="bank-owner"><strong>Titular:</strong> TributaSoft S.A<br><strong>RUC:</strong> 0992703601001</p>
                 <p class="bank-warning"><strong>Vista previa:</strong> no realices transferencias desde esta maqueta; no procesa pagos.</p>
                 <ul>
-                  <li><div><strong>Banco del Pacífico</strong><span>Ahorros</span></div><span class="bank-number">Cuenta: <strong>1043401667</strong></span></li>
-                  <li><div><strong>Banco Pichincha</strong><span>Corriente</span></div><span class="bank-number">Cuenta: <strong>2100146073</strong></span></li>
-                  <li><div><strong>Banco ProCredit</strong><span>Ahorros</span></div><span class="bank-number">Cuenta: <strong>17030123262</strong></span></li>
+                  <li><div><strong>Banco del Pacífico</strong><span>Ahorros</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>1043401667</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco del Pacífico">Copiar</button></span></li>
+                  <li><div><strong>Banco Pichincha</strong><span>Corriente</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>2100146073</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco Pichincha">Copiar</button></span></li>
+                  <li><div><strong>Banco ProCredit</strong><span>Ahorros</span></div><span class="bank-account"><span class="bank-number">Cuenta: <strong>17030123262</strong></span><button class="copy-account" type="button" aria-label="Copiar cuenta de Banco ProCredit">Copiar</button></span></li>
                 </ul>
+                <p class="copy-message" role="status" aria-live="polite"></p>
               </div>
             </details>
             <div class="fields-grid">
-              <div><label class="field-label" for="bank">Banco de destino</label><select class="field-control" id="bank"><option value="">Selecciona un banco</option><option value="banco-pacifico-ahorros">Banco del Pacífico (ahorros)</option><option value="banco-pichincha-corriente">Banco Pichincha (corriente)</option><option value="banco-procredit-ahorros">Banco ProCredit (ahorros)</option></select></div>
-              <div><label class="field-label" for="operation">Forma de pago</label><select class="field-control" id="operation"><option value="transferencia">Transferencia</option><option value="deposito">Depósito</option></select></div>
+              <div class="field-full"><label class="field-label" for="bank">Banco de destino</label><select class="field-control" id="bank"><option value="">Selecciona un banco</option><option value="banco-pacifico-ahorros">Banco del Pacífico</option><option value="banco-pichincha-corriente">Banco Pichincha</option><option value="banco-procredit-ahorros">Banco ProCredit</option></select></div>
               <div class="field-full"><label class="field-label" for="payment-date">Fecha del pago</label><input class="field-control" id="payment-date" type="date"></div>
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">JPG, JPEG, PNG o PDF; máximo 500 KB (500,000 bytes). El archivo no se envía.</p></div>
             </div>
@@ -106,8 +109,10 @@
             <label class="terms-check"><input type="checkbox" id="terms"><span>He visto que los términos y condiciones aún no están disponibles.</span></label>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
+           </div>
           </div>
-          <div id="card-panel" class="method-panel" hidden>
+          <div id="transfer-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-transferencia" hidden></div>
+          <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
             <div class="card-placeholder" id="payphone-container">
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
