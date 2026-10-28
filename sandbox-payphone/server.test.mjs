@@ -25,6 +25,22 @@ test('servidor exige activación y credenciales antes de abrir', () => {
   assert.throws(() => createSandboxServer({ enabled: true, sandboxVerified: false, token: 'fake', storeId: 'fake' }), /credenciales/);
 });
 
+test('túnel configurado permite su origen exacto y rechaza otros', async () => {
+  const tunnelOrigin = 'https://prueba-8131.use.devtunnels.ms';
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:', tunnelOrigin });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  try {
+    assert.equal((await send(port, '/')).headers.location, '/renovacion.html');
+    const page = await send(port, '/renovacion.html');
+    const cookie = page.headers['set-cookie'][0].split(';')[0];
+    const headers = { cookie, 'x-local-sandbox': '1' };
+    const body = JSON.stringify({ monthly: 1, termsAccepted: true });
+    assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers: { ...headers, origin: 'https://otro.use.devtunnels.ms' }, body })).status, 403);
+    assert.equal((await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers: { ...headers, origin: tunnelOrigin }, body })).status, 200);
+  } finally { app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
 test('reserva local, retorno validado y confirmación con proveedor simulado', async () => {
   let calls = 0;
   const fakeFetch = async (_url, request) => {

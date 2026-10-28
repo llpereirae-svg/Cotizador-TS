@@ -15,11 +15,14 @@ const browser = readFileSync(new URL('./test-page.js', import.meta.url), 'utf8')
 const bridge = readFileSync(new URL('./renewal-bridge.js', import.meta.url), 'utf8');
 
 /** Crea un servidor para prueba local y no lo inicia; el ambiente es declarado por el operador. */
-export function createSandboxServer({ enabled, sandboxVerified, token, storeId, dbPath, fetchImpl = globalThis.fetch } = {}) {
+export function createSandboxServer({ enabled, sandboxVerified, token, storeId, dbPath, tunnelOrigin = '', fetchImpl = globalThis.fetch } = {}) {
   if (enabled !== true || sandboxVerified !== true || !token?.trim() || !storeId?.trim()) {
     throw new Error('Se requieren activación explícita y credenciales de prueba verificadas.');
   }
   if (typeof fetchImpl !== 'function' || typeof dbPath !== 'string') throw new Error('Faltan dependencias locales.');
+  if (tunnelOrigin && !/^https:\/\/[a-z0-9-]+\.use\.devtunnels\.ms$/.test(tunnelOrigin)) {
+    throw new Error('El origen del túnel privado no es válido.');
+  }
   const store = createLocalAttemptStore({ filename: dbPath });
   const session = store.session(randomBytes(32).toString('hex'));
   const transport = async ({ url, method, headers, json, signal }) => {
@@ -46,6 +49,9 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
     const origin = `http://localhost:${port}`;
     const url = new URL(req.url, origin);
     const authorized = (req.headers.cookie || '').split(';').some(value => value.trim() === `pp_session=${session}`);
+    if (req.method === 'GET' && url.pathname === '/') {
+      res.writeHead(303, { Location: '/renovacion.html' }); return res.end();
+    }
     if (req.method === 'GET' && url.pathname === '/sandbox-payphone') {
       res.setHeader('Set-Cookie', `pp_session=${session}; HttpOnly; SameSite=Lax; Path=/`);
       return html(res, 200, page);
@@ -55,8 +61,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       const renewal = readFileSync(new URL('../renovacion.html', import.meta.url), 'utf8');
       const marker = '<div class="card-placeholder" id="payphone-container">';
       if (!renewal.includes(marker)) return html(res, 503, 'La vista de renovación cambió; revisa el adaptador local.');
-      const patched = renewal.replace(marker, `<p>Ensayo local con credenciales de prueba. La renovación real no se realiza.</p>
-        <p id="local-payphone-status" role="status" aria-live="polite"></p><div id="pp-button"></div>${marker}`)
+      const patched = renewal.replace(marker, `<p id="local-payphone-status" role="status" aria-live="polite"></p><div id="pp-button"></div>${marker}`)
         .replace('</head>', '<style>#payphone-container,#simulate-pending,#simulate-cancelled{display:none!important}</style></head>')
         .replace('</body>', '<script type="module" src="/sandbox-payphone/renewal-bridge.js"></script></body>');
       return html(res, 200, patched);
@@ -90,7 +95,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       return res.end(JSON.stringify({ active: store.active('demo-unica') }));
     }
     if (req.method === 'POST' && url.pathname === '/sandbox-payphone/reservar') {
-      if (req.headers.origin !== origin || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
+      if (![origin, ...(tunnelOrigin ? [tunnelOrigin] : [])].includes(req.headers.origin) || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
       let body = '';
       for await (const chunk of req) { body += chunk; if (body.length > 256) return html(res, 413, 'Solicitud demasiado grande.'); }
       let monthly, termsAccepted;
@@ -141,7 +146,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   mkdirSync(folder, { recursive: true });
   const app = createSandboxServer({ enabled: true, sandboxVerified: true,
     token: process.env.PAYPHONE_TEST_TOKEN, storeId: process.env.PAYPHONE_TEST_STORE_ID,
-    dbPath: join(folder, 'attempts.sqlite') });
+    dbPath: join(folder, 'attempts.sqlite'), tunnelOrigin: process.env.PAYPHONE_TEST_TUNNEL_ORIGIN || '' });
   app.server.listen(8131, '127.0.0.1', () => process.stdout.write('Servidor de pruebas activo solo en localhost.\n'));
   const stop = () => app.server.close(() => { app.closeStore(); process.exit(0); });
   process.once('SIGINT', stop); process.once('SIGTERM', stop);

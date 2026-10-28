@@ -19,11 +19,14 @@ try {
   if (-not $sandboxSecret -or $sandboxSecret.Length -eq 0) { throw 'No se ingresó un token.' }
   $sandboxStore = Read-Host 'Store ID de prueba'
   if ([string]::IsNullOrWhiteSpace($sandboxStore)) { throw 'No se ingresó el Store ID.' }
+  $sandboxTunnel = Read-Host 'Origen HTTPS del túnel privado (Enter para solo localhost)'
+  if ($sandboxTunnel -and $sandboxTunnel -cnotmatch '^https://[a-z0-9-]+\.use\.devtunnels\.ms$') { throw 'Origen del túnel no válido.' }
   $sandboxPtr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($sandboxSecret)
   $env:PAYPHONE_TEST_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($sandboxPtr)
   $env:PAYPHONE_TEST_STORE_ID = $sandboxStore
   $env:PAYPHONE_SANDBOX_ENABLED = '1'
   $env:PAYPHONE_SANDBOX_VERIFIED = '1'
+  $env:PAYPHONE_TEST_TUNNEL_ORIGIN = $sandboxTunnel
   Push-Location (Split-Path $PSScriptRoot -Parent)
   $sandboxMoved = $true
   Write-Host 'Abre http://localhost:8131/renovacion.html en esta computadora. Para detener, pulsa Ctrl+C.'
@@ -37,5 +40,5 @@ try {
   if ($sandboxPtr -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($sandboxPtr) }
   $sandboxSecret = $null
   $sandboxStore = $null
-  Remove-Item Env:PAYPHONE_TEST_TOKEN, Env:PAYPHONE_TEST_STORE_ID, Env:PAYPHONE_SANDBOX_ENABLED, Env:PAYPHONE_SANDBOX_VERIFIED -ErrorAction SilentlyContinue
+  Remove-Item Env:PAYPHONE_TEST_TOKEN, Env:PAYPHONE_TEST_STORE_ID, Env:PAYPHONE_SANDBOX_ENABLED, Env:PAYPHONE_SANDBOX_VERIFIED, Env:PAYPHONE_TEST_TUNNEL_ORIGIN -ErrorAction SilentlyContinue
 }
