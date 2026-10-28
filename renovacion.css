@@ -77,7 +77,6 @@
 .copy-account:hover { background: #eef4fa; }
 .copy-message:not(:empty) { margin: 10px 0 0; color: var(--navy); }
 .bank-warning { padding: 11px 12px; background: #fff8ee; border-radius: 8px; color: #694c2c; }
-@media (max-width: 360px) { .preview-mark { font-size: 10px; padding: 5px 7px; } }
 
 /* Las cifras y los controles permanecen en su lugar durante los cambios. */
 @media (prefers-reduced-motion: no-preference) {
@@ -90,3 +89,21 @@
     .stepper button, .button-primary, .button-secondary { transition: background-color 120ms ease; }
   }
 }
+
+/* Resumen de compra: información del plan y desglose en una lectura breve. */
+.checkout-summary h2 { margin: 0; font-size: 18px; }
+.checkout-details, .checkout-prices { margin: 0; }
+.checkout-details { padding: 22px 0 20px; border-bottom: 1px solid #e6ebf1; }
+.checkout-prices { padding-top: 20px; }
+.checkout-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: #586779; font-size: 14px; line-height: 1.45; }
+.checkout-row + .checkout-row { margin-top: 10px; }
+.checkout-row dt, .checkout-row dd { margin: 0; }
+.checkout-row dd { min-width: 0; color: var(--text); text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.checkout-row dd strong { font-weight: inherit; }
+.checkout-row.summary-caption { margin-top: 10px; font-size: 14px; }
+.checkout-total { margin-top: 18px !important; padding-top: 18px; border-top: 1px solid #e6ebf1; align-items: center; }
+.checkout-total dt { color: var(--text); font-weight: 700; }
+.checkout-total dd { color: var(--navy); font: 700 30px/1.1 "DM Sans", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+
+.section-heading { align-items: center; }
+.section-heading h2 { margin: 0; }

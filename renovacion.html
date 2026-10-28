@@ -16,7 +16,6 @@
         <img src="./assets/tributasoft-logo.png" alt="">
         <span class="brand-word" aria-hidden="true"><span class="brand-tributa">Tributa</span><span class="brand-soft">Soft</span></span>
       </div>
-      <span class="preview-mark">Vista previa · Sin cobros</span>
     </div>
   </header>
   <main class="page">
@@ -31,7 +30,7 @@
             <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8.5 12h7M8.5 15.5h7"/></svg></span>
             <div><h2 id="consumo-title">Tu consumo estimado</h2></div>
           </div>
-          <div class="customer-preview"><span>Cliente</span><strong>Cuenta de ejemplo</strong></div>
+          <div class="customer-preview"><span>RUC de ejemplo</span><strong>09999999999001</strong></div>
           <div class="form-section">
             <label class="field-label" for="monthly">Documentos promedio por mes</label>
             <div class="stepper">
@@ -43,16 +42,18 @@
           </div>
         </div>
       </section>
-      <aside class="card summary-card" aria-label="Resumen de la renovación">
+      <aside class="card summary-card checkout-summary" aria-label="Resumen de la renovación">
         <div class="card-body">
-          <div class="summary-top"><div><h2>Tu plan anual</h2></div><span class="summary-period">12 meses</span></div>
-          <div class="annual-docs"><strong data-quote-value="annual">120</strong><span>documentos al año</span></div>
-          <div class="summary-lines" aria-live="polite" aria-atomic="true">
-            <p class="summary-line"><span>Base imponible</span><strong data-quote-value="base">$30.00</strong></p>
-            <p class="summary-line"><span>IVA</span><strong data-quote-value="tax">$4.50</strong></p>
-          </div>
-          <div class="summary-total"><span>Total estimado</span><strong data-quote-value="total">$34.50</strong></div>
-          <p class="summary-caption">Vencimiento estimado: <time id="estimated-expiry">pendiente</time>. La fecha definitiva será confirmada.</p>
+          <h2>Resumen del pedido</h2>
+          <dl class="checkout-details">
+            <div class="checkout-row"><dt>Plan anual</dt><dd><strong aria-live="polite" data-quote-value="annual">120</strong> documentos</dd></div>
+            <div class="checkout-row summary-caption"><dt>Vencimiento estimado</dt><dd><time id="estimated-expiry">—</time></dd></div>
+          </dl>
+          <dl class="checkout-prices" aria-live="polite" aria-atomic="true">
+            <div class="checkout-row"><dt>Base imponible</dt><dd data-quote-value="base">$30.00</dd></div>
+            <div class="checkout-row"><dt>IVA</dt><dd data-quote-value="tax">$4.50</dd></div>
+            <div class="checkout-row checkout-total"><dt>Total estimado</dt><dd data-quote-value="total">$34.50</dd></div>
+          </dl>
         </div>
       </aside>
       <section class="card payment-card" aria-labelledby="payment-title">
