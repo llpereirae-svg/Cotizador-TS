@@ -63,3 +63,33 @@ test('confirmación real solo con transporte inyectado; coteja reserva y monto',
     assert.equal(count, 1);
   } finally { store.close(); }
 });
+
+test('una declaración manual explícita cierra solo una reserva sin id de proveedor y conserva el historial', () => {
+  const store = createLocalAttemptStore({ filename: ':memory:' });
+  try {
+    assert.equal(store.reserve(order), true);
+    assert.throws(() => store.closeManually({ clientTransactionId: order.clientTransactionId }), /Declaración inválida/);
+    assert.equal(store.reserve({ ...order, clientTransactionId: 'other' }), false);
+    assert.deepEqual(store.recoveryCandidate(order.renewalRef), {
+      clientTransactionId: order.clientTransactionId, status: 'reserved', providerTransactionId: null
+    });
+    assert.equal(store.closeManually({ clientTransactionId: order.clientTransactionId, attestation: 'no_transaction' }), true);
+    assert.equal(store.get(order.clientTransactionId).status, 'closed_manually');
+    assert.equal(store.closeManually({ clientTransactionId: order.clientTransactionId, attestation: 'no_transaction' }), false);
+    assert.equal(store.reserve({ ...order, clientTransactionId: 'other' }), true);
+  } finally { store.close(); }
+});
+
+test('la recuperación manual no libera confirmaciones, pendientes ni aprobaciones', () => {
+  for (const status of ['confirming', 'pending', 'approved']) {
+    const store = createLocalAttemptStore({ filename: ':memory:' });
+    try {
+      assert.equal(store.reserve(order), true);
+      assert.equal(store.claim(attempt), true);
+      if (status !== 'confirming') assert.equal(store.record({ ...attempt, status }), true);
+      assert.equal(store.closeManually({ clientTransactionId: order.clientTransactionId, attestation: 'no_transaction' }), false);
+      assert.equal(store.get(order.clientTransactionId).status, status);
+      assert.equal(store.reserve({ ...order, clientTransactionId: 'other' }), false);
+    } finally { store.close(); }
+  }
+});

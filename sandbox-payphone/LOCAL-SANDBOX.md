@@ -46,6 +46,25 @@ espera, queda bloqueada para conciliación. Ocultar la Cajita tras un minuto no
 confirma cancelación. El proveedor documenta reversión automática si una
 transacción no se confirma en cinco minutos, pero el estado debe comprobarse.
 No borres ni restablezcas una orden pendiente para reintentar sin verificarla.
+Si la Cajita no llega a abrir por un error de configuración, cierra la pestaña y
+detén el servidor con Ctrl+C. Puedes revisar el identificador del intento con:
+
+```powershell
+node .\sandbox-payphone\recuperar-ensayo.mjs
+```
+
+El programa mostrará el identificador de la orden y pedirá una declaración
+manual. Antes de responder, verifica con PayPhone usando ese identificador que
+no existe ninguna transacción o que está cancelada. Un mensaje de error, una
+lista vacía sin verificar el ambiente, cerrar el navegador o esperar no son por
+sí solos confirmación. Si no puedes verificarlo, pulsa Enter: la orden seguirá
+bloqueada. Si la confirmación es concluyente, escribe `NO EXISTE` o `CANCELADA`,
+según corresponda. El cierre se conserva como declaración manual en el historial;
+no se presenta como confirmación automática de PayPhone. Solo se admite para
+reservas sin ID de proveedor; estados que ya se están confirmando, pendientes
+con ID o aprobados siguen bloqueados. La herramienta no funciona mientras el
+servidor usa el puerto 8131. Cierra también cualquier otra pestaña de la Cajita.
+
 El estado aprobado también bloquea otra orden para la misma demostración. El
 servidor restaura la sesión local tras un reinicio para que el mismo navegador
 pueda confirmar el retorno pendiente; conservar la URL de retorno si el

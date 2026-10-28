@@ -25,13 +25,20 @@ export function createLocalAttemptStore({ filename } = {}) {
     CREATE UNIQUE INDEX IF NOT EXISTS sandbox_one_active_per_renewal
       ON sandbox_attempts(renewal_ref) WHERE status != 'canceled';
     CREATE TABLE IF NOT EXISTS sandbox_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS sandbox_manual_resolutions (
+      client_tx_id TEXT PRIMARY KEY REFERENCES sandbox_attempts(client_tx_id),
+      attestation TEXT NOT NULL CHECK (attestation IN ('no_transaction', 'canceled')),
+      recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
   const insert = db.prepare(`INSERT INTO sandbox_attempts
     (client_tx_id, renewal_ref, amount_cents, currency, monthly, status)
     VALUES (?, ?, ?, ?, ?, 'reserved')`);
   const find = db.prepare(`SELECT client_tx_id AS clientTransactionId,
     renewal_ref AS renewalRef, amount_cents AS amountCents, currency,
-    provider_id AS providerTransactionId, status
+    provider_id AS providerTransactionId,
+    CASE WHEN EXISTS (SELECT 1 FROM sandbox_manual_resolutions m WHERE m.client_tx_id = sandbox_attempts.client_tx_id)
+      THEN 'closed_manually' ELSE status END AS status
     FROM sandbox_attempts WHERE client_tx_id = ?`);
   const take = db.prepare(`UPDATE sandbox_attempts SET provider_id = ?, status = 'confirming'
     WHERE client_tx_id = ? AND renewal_ref = ? AND status = 'reserved'`);
@@ -68,6 +75,34 @@ export function createLocalAttemptStore({ filename } = {}) {
     get(clientTransactionId) {
       const row = find.get(requiredText(clientTransactionId, 'clientTransactionId'));
       return row ? { ...row } : null;
+    },
+    /** Consulta local para cotejar el intento en el portal; no altera el estado. */
+    recoveryCandidate(renewalRef) {
+      const row = db.prepare(`SELECT client_tx_id AS clientTransactionId, status,
+        provider_id AS providerTransactionId FROM sandbox_attempts
+        WHERE renewal_ref = ? AND status != 'canceled'`).get(requiredText(renewalRef, 'renewalRef'));
+      return row ? { ...row } : null;
+    },
+    /** Registra una declaración manual, no una confirmación automática del proveedor. */
+    closeManually({ clientTransactionId, attestation } = {}) {
+      const id = requiredText(clientTransactionId, 'clientTransactionId');
+      if (!['no_transaction', 'canceled'].includes(attestation)) throw new TypeError('Declaración inválida.');
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        const row = db.prepare('SELECT status, provider_id AS providerTransactionId FROM sandbox_attempts WHERE client_tx_id = ?').get(id);
+        if (!row || row.status !== 'reserved' || row.providerTransactionId !== null) {
+          db.exec('ROLLBACK');
+          return false;
+        }
+        db.prepare('INSERT INTO sandbox_manual_resolutions (client_tx_id, attestation) VALUES (?, ?)').run(id, attestation);
+        const result = db.prepare("UPDATE sandbox_attempts SET status = 'canceled' WHERE client_tx_id = ? AND status = 'reserved' AND provider_id IS NULL").run(id);
+        if (result.changes !== 1) throw new Error('No se pudo cerrar la reserva.');
+        db.exec('COMMIT');
+        return true;
+      } catch (error) {
+        db.exec('ROLLBACK');
+        throw error;
+      }
     },
     /** La confirmación solo puede reclamar la reserva una vez. */
     claim(attempt) {
