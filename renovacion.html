@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Renueva tu plan | TributaSoft</title>
+  <link rel="icon" href="./assets/tributasoft-logo.png">
+  <link rel="stylesheet" href="./assets/base.css">
+  <link rel="stylesheet" href="./renovacion.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand" aria-label="TributaSoft">
+        <img src="./assets/tributasoft-logo.png" alt="">
+        <span class="brand-word" aria-hidden="true"><span class="brand-tributa">Tributa</span><span class="brand-soft">Soft</span></span>
+      </div>
+      <span class="preview-mark">Vista de prueba</span>
+    </div>
+  </header>
+  <main class="page">
+    <div class="page-intro">
+      <p class="kicker">Renovación</p>
+      <h1>Renueva tu plan</h1>
+      <p class="intro-copy">Elige tu promedio mensual y la forma de pago que prefieras.</p>
+    </div>
+    <div class="layout renewal-layout">
+      <section class="card usage-card" aria-labelledby="consumo-title">
+        <div class="card-body">
+          <div class="section-heading">
+            <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8.5 12h7M8.5 15.5h7"/></svg></span>
+            <div><h2 id="consumo-title">Tu consumo estimado</h2><p>Ajusta tu plan para el próximo año.</p></div>
+          </div>
+          <div class="customer-preview"><span>Cliente de ejemplo</span><strong>Datos de la cuenta simulados</strong></div>
+          <div class="form-section">
+            <label class="field-label" for="monthly">Documentos promedio por mes</label>
+            <div class="stepper">
+              <button type="button" data-decrease aria-label="Reducir documentos por mes">−</button>
+              <input id="monthly" data-monthly type="number" value="10" min="1" step="1" inputmode="numeric" aria-describedby="monthly-hint quote-error">
+              <button type="button" data-increase aria-label="Aumentar documentos por mes">+</button>
+            </div>
+            <p id="monthly-hint" class="field-hint">Tu estimación se actualiza al cambiar la cantidad.</p>
+            <p id="quote-error" data-quote-error class="field-error" hidden>Ingresa un número entero mayor que cero.</p>
+          </div>
+        </div>
+      </section>
+      <aside class="card summary-card" aria-label="Resumen de la renovación">
+        <div class="card-body">
+          <div class="summary-top"><div><h2>Tu plan anual</h2><p>Resumen de tu renovación</p></div><span class="summary-period">12 meses</span></div>
+          <div class="annual-docs"><strong data-quote-value="annual">120</strong><span>documentos al año</span></div>
+          <div class="summary-lines" aria-live="polite" aria-atomic="true">
+            <p class="summary-line"><span>Base imponible</span><strong data-quote-value="base">$30.00</strong></p>
+            <p class="summary-line"><span>IVA</span><strong data-quote-value="tax">$4.50</strong></p>
+          </div>
+          <div class="summary-total"><span>Total estimado</span><strong data-quote-value="total">$34.50</strong></div>
+          <p class="summary-caption">Vencimiento de ejemplo: 1 nov 2027. El valor y la fecha están sujetos a confirmación.</p>
+        </div>
+      </aside>
+      <section class="card payment-card" aria-labelledby="payment-title">
+        <div class="card-body">
+          <div class="section-heading">
+            <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
+            <div><h2 id="payment-title">Elige cómo pagar</h2><p>Selecciona la opción que te resulte más cómoda.</p></div>
+          </div>
+          <div class="payment-options" role="group" aria-label="Método de pago">
+            <button class="payment-option is-selected" type="button" data-method="transferencia" aria-pressed="true" aria-controls="transfer-panel">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-5 9 5M4 10h16M5 20h14M7 10v8M12 10v8M17 10v8M3 21h18"/></svg>
+              <span><strong>Transferencia o depósito</strong><small>Reporta tu pago</small></span>
+              <span class="option-check" aria-hidden="true"></span>
+            </button>
+            <button class="payment-option" type="button" data-method="tarjeta" aria-pressed="false" aria-controls="card-panel">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>
+              <span><strong>Tarjeta</strong><small>Pago con PayPhone</small></span>
+              <span class="option-check" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div id="transfer-panel" class="method-panel">
+            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito.</p></div></div>
+            <div id="transfer-pending" class="pending-message" role="status" hidden><strong>Pago con tarjeta pendiente</strong><p>Confirma el estado del pago anterior antes de completar otro.</p></div>
+            <div class="bank-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Las cuentas bancarias se mostrarán aquí al conectar el servicio.</span></div>
+            <div class="fields-grid">
+              <div><label class="field-label" for="bank">Banco de destino</label><select class="field-control" id="bank"><option value="">Selecciona un banco</option><option value="banco-ejemplo">Banco de ejemplo</option></select></div>
+              <div><label class="field-label" for="operation">Forma de pago</label><select class="field-control" id="operation"><option value="transferencia">Transferencia</option><option value="deposito">Depósito</option></select></div>
+              <div class="field-full"><label class="field-label" for="payment-date">Fecha del pago</label><input class="field-control" id="payment-date" type="date"></div>
+              <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".pdf,image/png,image/jpeg"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint">En esta vista de prueba, el archivo no se envía.</p></div>
+            </div>
+            <div class="verification">
+              <div><h3>Verificación por correo</h3><p>Confirma la solicitud con el código enviado al correo de la cuenta.</p></div>
+              <button class="button-secondary" type="button" id="simulate-code">Simular envío</button>
+            </div>
+            <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
+            <div class="code-entry" id="code-entry" hidden>
+              <label class="field-label" for="email-code">Código de ejemplo: 123456</label>
+              <div class="code-row"><input class="field-control" id="email-code" inputmode="numeric" maxlength="6" autocomplete="off"><button class="button-secondary" type="button" id="verify-code">Verificar</button></div>
+              <p id="code-message" class="field-hint" role="status" aria-live="polite"></p>
+            </div>
+            <label class="terms-check"><input type="checkbox" id="terms"><span>Confirmo que esta es una vista de prueba. Los términos y condiciones están pendientes de integración.</span></label>
+            <button class="button-primary action-button" type="button" id="simulate-renewal">Simular renovación</button>
+            <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
+          </div>
+          <div id="card-panel" class="method-panel" hidden>
+            <div class="panel-title"><div><h3>Pago con tarjeta</h3><p>La cajita de PayPhone se integrará en este espacio.</p></div></div>
+            <div class="card-placeholder">
+              <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
+              <div><strong>Vista ilustrativa</strong><p>No ingreses datos de tarjeta: este espacio no procesa pagos.</p></div>
+            </div>
+            <button class="button-secondary action-button" type="button" id="simulate-pending">Ver estado de espera</button>
+            <div id="pending-message" class="pending-message" role="status" aria-live="polite" hidden><strong>Estamos verificando el pago</strong><p>En un pago real, se debe confirmar el estado antes de intentar otro cobro.</p><button class="button-secondary resolution-button" type="button" id="simulate-cancelled">Simular cancelación confirmada</button></div><p id="card-resolution-message" class="field-hint" role="status" aria-live="polite" hidden></p>
+          </div>
+          <details class="payment-info">
+            <summary>Información a considerar</summary>
+            <ul><li>La vigencia del plan es de un año.</li><li>Los comprobantes reportados se revisan después del envío.</li><li>El valor y la fecha de vencimiento deben confirmarse antes de pagar.</li></ul>
+          </details>
+        </div>
+      </section>
+    </div>
+    <p class="note-footer">Vista previa · No se realizan pagos ni se envían datos.</p>
+  </main>
+  <script type="module" src="./renovacion.js"></script>
+</body>
+</html>
