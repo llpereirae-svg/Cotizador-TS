@@ -6,11 +6,14 @@ const terms = document.querySelector('#card-terms');
 let ready = false;
 let wantsCard = false;
 let started = false;
+let wantsStart = false;
 
 document.addEventListener('paymentmethodchange', event => {
   wantsCard = event.detail?.method === 'tarjeta';
-  if (wantsCard) void prepareCajita();
+  if (!wantsCard) wantsStart = false;
 });
+document.addEventListener('sandbox-plan-edit', () => { wantsStart = false; wantsCard = false; });
+document.addEventListener('sandbox-open-payphone', () => { wantsCard = true; wantsStart = true; void prepareCajita(); });
 
 function protectOperation(monthly, paymentState) {
   if (monthly) {
@@ -68,14 +71,14 @@ try {
       document.querySelector('.payment-options').scrollIntoView({ block: 'center' });
       history.replaceState(null, '', location.pathname);
     }
-    if (wantsCard) void prepareCajita();
+    if (wantsCard && wantsStart) void prepareCajita();
   }
 } catch {
   status.textContent = 'No se pudo comprobar el estado de la operación. No inicies otro pago.';
 }
 
 async function prepareCajita() {
-  if (!ready || !wantsCard || started) return;
+  if (!ready || !wantsCard || !wantsStart || started) return;
   if (!terms.checked) { status.textContent = ''; return; }
   const monthly = Number(field.value);
   if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) {

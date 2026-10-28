@@ -60,7 +60,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
     if (req.method === 'GET' && url.pathname === '/renovacion.html') {
       res.setHeader('Set-Cookie', `pp_session=${session}; HttpOnly; SameSite=Lax; Path=/`);
       const renewal = readFileSync(new URL('../renovacion.html', import.meta.url), 'utf8');
-      const marker = '<div class="card-placeholder" id="payphone-container">';
+      const marker = '<div class="card-placeholder" id="payphone-container" hidden>';
       if (!renewal.includes(marker)) return html(res, 503, 'La vista de renovación cambió; revisa el adaptador local.');
       const patched = renewal.replace(marker, `<p id="local-payphone-status" role="status" aria-live="polite"></p><div id="pp-button"></div>${marker}`)
         .replace('</head>', '<style>#payphone-container,#simulate-pending,#simulate-cancelled{display:none!important}</style></head>')

@@ -26,15 +26,16 @@ sin mostrarlo. Los datos no se guardan en Git ni en ningún archivo:
 powershell -ExecutionPolicy Bypass -File .\sandbox-payphone\iniciar-prueba.ps1
 ```
 
-Abre `http://localhost:8131/renovacion.html` en **esta computadora**, elige una
-cantidad de documentos y la pestaña TC/TD. Después de leer y aceptar el borrador
-de términos, el servidor recalcula el importe de la orden de demostración, crea una reserva
-persistente y carga el SDK oficial; introducir datos y finalizar el pago requiere
+Abre `http://localhost:8131/renovacion.html` en **esta computadora**, confirma la
+cantidad de documentos y elige la pestaña TC/TD. Revisa el resumen y acepta los
+términos; solo al pulsar «Continuar» el servidor recalcula el importe de la orden
+de demostración, crea una reserva persistente y carga el SDK oficial. Introducir
+datos y finalizar el pago requiere
 una acción adicional de la persona probadora. La transferencia y el correo
 continúan simulados y el cliente es ficticio: no hay autenticación ni renovación
 real. La ventana de código es solo una demostración: no se envía ningún correo.
-El texto de términos es un borrador; el backend final debe registrar la aceptación
-de una versión aprobada. También está disponible `http://localhost:8131/sandbox-payphone`
+El backend final debe registrar la aceptación de la versión aprobada de los términos.
+También está disponible `http://localhost:8131/sandbox-payphone`
 con una orden fija para diagnóstico. No pegues números de tarjeta en el chat. Detén el servidor
 con Ctrl+C al terminar; el lanzador limpia sus variables de entorno al salir.
 El entorno de prueba de PayPhone, según su documentación,
