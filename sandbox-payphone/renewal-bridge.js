@@ -43,7 +43,7 @@ try {
     status.textContent = active.status === 'approved'
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
-    if (new URLSearchParams(location.search).get('regreso') === 'boton' && active.paymentKind === 'button' && active.status === 'reserved') {
+    if (active.paymentKind === 'button' && active.status === 'reserved') {
       document.querySelector('#pending-message strong').textContent = 'Verificación de pago pendiente';
       document.querySelector('#pending-message p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
       document.querySelector('#transfer-pending strong').textContent = 'Verificación de pago pendiente';
@@ -53,7 +53,7 @@ try {
       closeTest.className = 'button-secondary action-button';
       closeTest.textContent = 'Cancelar';
       closeTest.addEventListener('click', async () => {
-        if (!window.confirm('Solo para esta prueba: ¿confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
+        if (!window.confirm('Solo para esta prueba: cierra la página de PayPhone. ¿Confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
         closeTest.disabled = true;
         try {
           const result = await fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: true }) });

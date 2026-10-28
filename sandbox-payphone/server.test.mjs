@@ -186,6 +186,8 @@ test('al volver del botón permite editar sin liberar la orden ni permitir otro 
     await page.goto(`http://localhost:${port}/cancelacion-payphone.html?orden=${prepared.clientTransactionId}`);
     await page.waitForFunction(() => !document.querySelector('[data-monthly]').disabled);
     assert.equal(await page.locator('#payment-card').isVisible(), false);
+    await page.reload();
+    await page.waitForFunction(() => !document.querySelector('[data-monthly]').disabled);
     await page.locator('[data-monthly]').fill('12');
     await page.locator('#confirm-plan').click();
     await page.locator('[data-method="banco"]').click();
