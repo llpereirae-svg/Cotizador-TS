@@ -54,6 +54,8 @@ Ejemplo conceptual de datos que la interfaz necesitaría entregar o confirmar; n
 
 El servidor debe validar la identidad y recalcular los importes, la cantidad anual y la fecha. La fecha mostrada por la maqueta es una estimación calculada localmente y no sustituye el vencimiento autorizado por el backend. Los identificadores de bancos son propuestos y deben acordarse con el backend. La referencia al comprobante y la verificación son ejemplos de contrato, no identificadores reales. La selección del archivo en la maqueta nunca sale del navegador. El mecanismo y las reglas de carga segura deben acordarse con el backend.
 
+Si `tipoOperacion` es `deposito`, la maqueta requiere además `tipoDeposito`, con valor `cheque` o `efectivo`. Este campo no se incluye para una transferencia. Los nombres y valores son propuestos; el backend debe acordarlos y validarlos antes de la integración.
+
 ## Tarjeta
 
 La página reserva el contenedor visual `#payphone-container` para la integración oficial de PayPhone; actualmente no procesa ni solicita datos de tarjeta. El backend debe crear y confirmar la operación, proteger sus credenciales, conciliar el resultado y evitar cobros duplicados. Un timeout no equivale a cancelación: el resultado debe quedar pendiente hasta confirmar el estado o el reverso. No reintentar un cobro ni completar otro pago mientras no se resuelva el estado anterior, aunque se permita cambiar de método o salir. El backend debe mantener y verificar este estado entre recargas y dispositivos. La maqueta solo conserva el estado en memoria y su botón de cancelación confirmada es una simulación, no una consulta ni una cancelación real.
