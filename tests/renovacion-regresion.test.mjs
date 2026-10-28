@@ -62,7 +62,6 @@ test("los términos se leen sin marcar la casilla y la verificación comienza al
 
 async function completeDemo(page) {
   await page.locator("#bank").selectOption("banco-pacifico-ahorros");
-  if (await page.locator("#deposit-type").isVisible()) await page.locator("#deposit-type").selectOption("efectivo");
   await page.locator("#payment-date").fill("2026-11-01");
   await page.locator("#receipt").setInputFiles(sampleFile("primero.pdf"));
   await page.locator("#terms").check();
@@ -74,34 +73,22 @@ async function completeDemo(page) {
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
 
-test("tipo de depósito se exige solo para depósito y se incluye en la simulación", async () => {
+test("depósito y transferencia se distinguen sin pedir tipo de depósito", async () => {
   await withPage(async page => {
-    const select = page.locator("#deposit-type");
-    assert.equal(await select.isVisible(), true);
-    assert.deepEqual(await select.locator("option").allTextContents(), ["Selecciona una opción", "Cheque", "Efectivo"]);
-    await page.locator("#simulate-renewal").click();
-    assert.match(await page.locator("#transfer-message").innerText(), /Selecciona el tipo de depósito/);
+    assert.equal(await page.locator("#deposit-type").count(), 0);
     await page.evaluate(async () => {
       const { demoRenewalAdapter } = await import("./renovacion-mock.js");
       demoRenewalAdapter.submitRenewal = async renewal => { window.lastRenewal = renewal; return { status: "simulado" }; };
     });
     await completeDemo(page);
-    assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "efectivo");
-    await select.selectOption("cheque");
-    await page.locator("#simulate-renewal").click();
-    await page.locator("#email-code").fill("123456");
-    await page.locator("#verify-code").click();
-    await page.locator("#code-dialog [data-close-dialog]").click();
-    assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "cheque");
+    assert.equal(await page.evaluate(() => window.lastRenewal.tipoOperacion), "deposito");
     await page.locator("#operation").selectOption("transferencia");
-    assert.equal(await select.isVisible(), false);
     await page.locator("#simulate-renewal").click();
     await page.locator("#email-code").fill("123456");
     await page.locator("#verify-code").click();
     await page.locator("#code-dialog [data-close-dialog]").click();
     assert.equal(await page.evaluate(() => Object.hasOwn(window.lastRenewal, "tipoDeposito")), false);
-    await page.locator("#tab-tarjeta").click();
-    assert.equal(await select.isVisible(), false);
+    assert.equal(await page.evaluate(() => window.lastRenewal.tipoOperacion), "transferencia");
   });
 });
 
@@ -131,17 +118,13 @@ test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente",
 test("los bancos se muestran en el desplegable solo para transferencia", async () => {
   await withPage(async page => {
     const bankLabels = await page.locator("#bank option").allTextContents();
-    assert.deepEqual(bankLabels.slice(1), [
-      "Banco del Pacífico",
-      "Banco Pichincha",
-      "Banco ProCredit"
-    ]);
+    assert.deepEqual(bankLabels, ["Banco Pacífico", "Pichincha", "ProCredit"]);
     const details = page.locator(".bank-details");
-    assert.equal(await details.locator("summary").innerText(), "Ver datos bancarios");
+    assert.equal(await details.locator("summary").innerText(), "Ver datos bancarios para transferir");
     await details.locator("summary").focus();
     await page.keyboard.press("Enter");
     assert.equal(await details.evaluate(node => node.open), true);
-    assert.match(await details.locator(".bank-warning").innerText(), /no realices transferencias/i);
+    assert.match(await page.locator(".demo-disclosure").innerText(), /no envía comprobantes ni procesa pagos/i);
     const accountValues = await details.locator(".bank-number strong").allTextContents();
     assert.equal(accountValues.length, 3);
     assert.ok(accountValues.every(value => /^\d{9,12}$/.test(value)), "Cada cuenta debe contener solo dígitos.");
@@ -187,14 +170,18 @@ test("copiar cuenta confirma el éxito o explica cómo copiarla manualmente", as
     await page.evaluate(() => {
       Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async value => { window.copiedAccount = value; } } });
     });
-    const row = page.locator(".bank-details li").first();
-    await row.locator(".copy-account").click();
-    assert.equal(await page.evaluate(() => window.copiedAccount), await row.locator(".bank-number strong").innerText());
+    const rows = page.locator(".bank-details li");
+    assert.equal(await rows.count(), 6);
+    for (let index = 0; index < 6; index++) {
+      const row = rows.nth(index);
+      await row.locator(".copy-account").click();
+      assert.equal(await page.evaluate(() => window.copiedAccount), await row.locator(".copy-value, .bank-number strong").innerText());
+    }
     assert.match(await page.locator(".copy-message").innerText(), /copiado/i);
     await page.evaluate(() => {
       Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("denied"); } } });
     });
-    await row.locator(".copy-account").click();
+    await rows.first().locator(".copy-account").click();
     assert.match(await page.locator(".copy-message").innerText(), /manualmente/i);
   });
 });

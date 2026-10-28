@@ -31,8 +31,6 @@ const methods = [...document.querySelectorAll("[data-method]")];
 const bankPanel = document.querySelector("#bank-panel");
 const cardPanel = document.querySelector("#card-panel");
 const operation = document.querySelector("#operation");
-const depositTypeField = document.querySelector("#deposit-type-field");
-const depositType = document.querySelector("#deposit-type");
 const codeEntry = document.querySelector("#code-entry");
 const codeRequestMessage = document.querySelector("#code-request-message");
 const receiptInput = document.querySelector("#receipt");
@@ -96,9 +94,6 @@ function selectMethod(button) {
 
 operation.addEventListener("change", () => {
   noteOperationChange();
-  const isDeposit = operation.value === "deposito";
-  depositTypeField.hidden = !isDeposit;
-  depositType.required = isDeposit;
 });
 
 methods.forEach((button, index) => {
@@ -155,13 +150,13 @@ for (const button of document.querySelectorAll(".copy-account")) {
   button.addEventListener("click", async () => {
     const message = document.querySelector(".copy-message");
     if (cardPending) return;
-    const number = button.closest("li").querySelector(".bank-number strong").textContent.trim();
+    const number = button.closest("li").querySelector(".copy-value, .bank-number strong").textContent.trim();
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
       await navigator.clipboard.writeText(number);
-      message.textContent = "Número de cuenta copiado.";
+      message.textContent = "Dato copiado.";
     } catch {
-      message.textContent = "No pudimos copiar la cuenta. Selecciona el número y cópialo manualmente.";
+      message.textContent = "No pudimos copiar el dato. Selecciónalo y cópialo manualmente.";
     }
   });
 }
@@ -211,12 +206,6 @@ renewalButton.addEventListener("click", async () => {
     document.querySelector("#monthly").focus();
     return;
   }
-  if (operationType === "deposito" && !["cheque", "efectivo"].includes(depositType.value)) {
-    transferMessage.textContent = "Selecciona el tipo de depósito.";
-    transferMessage.dataset.kind = "validation";
-    depositType.focus();
-    return;
-  }
   if (!bank || !paymentDate || !receiptSelected || !terms) {
     transferMessage.textContent = "Completa los datos, selecciona un archivo y acepta los términos.";
     transferMessage.dataset.kind = "validation";
@@ -229,7 +218,6 @@ renewalButton.addEventListener("click", async () => {
     metodoPago: "transferencia_o_deposito",
     banco: bank,
     tipoOperacion: operationType,
-    ...(operationType === "deposito" ? { tipoDeposito: depositType.value } : {}),
     fechaPago: paymentDate,
     comprobanteSeleccionado: receiptSelected
   };
@@ -286,7 +274,7 @@ receiptInput.addEventListener("change", () => {
   codeRequestMessage.hidden = true;
 });
 
-for (const selector of ["#bank", "#deposit-type", "#payment-date", "#terms"]) {
+for (const selector of ["#bank", "#payment-date", "#terms"]) {
   document.querySelector(selector).addEventListener("change", noteOperationChange);
 }
 document.addEventListener("quotechange", noteOperationChange);
