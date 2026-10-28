@@ -99,6 +99,40 @@ async function completeDemo(page) {
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
 
+test("el código no se reutiliza tras cambiar la operación y no se envía dos veces", async () => {
+  await withPage(async page => {
+    await page.evaluate(async () => {
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      demoRenewalAdapter.submitRenewal = async () => { window.submitCount = (window.submitCount || 0) + 1; return { status: "simulado" }; };
+    });
+    await completeDemo(page);
+    await page.locator("#bank").selectOption("banco-pichincha-corriente");
+    await page.locator("#simulate-renewal").click();
+    assert.equal(await page.locator("#finish-renewal").isVisible(), false);
+    assert.equal(await page.locator("#email-code").inputValue(), "");
+    await page.locator("#email-code").fill("123456");
+    await page.locator("#verify-code").click();
+    await page.locator("#verify-code").click();
+    assert.equal(await page.evaluate(() => window.submitCount), 2);
+  });
+});
+
+test("no se solicitan dos códigos con clics simultáneos", async () => {
+  await withPage(async page => {
+    await page.evaluate(async () => {
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      demoRenewalAdapter.requestEmailCode = () => { window.requestCount = (window.requestCount || 0) + 1; return new Promise(resolve => { window.resolveRequest = resolve; }); };
+    });
+    await page.locator("#payment-date").fill("2026-11-01");
+    await page.locator("#receipt").setInputFiles(sampleFile("ejemplo.pdf"));
+    await page.locator("#terms").check();
+    await page.locator("#simulate-renewal").evaluate(button => { button.click(); button.click(); });
+    assert.equal(await page.evaluate(() => window.requestCount), 1);
+    await page.evaluate(() => window.resolveRequest({ status: "simulado" }));
+    await page.locator("#code-dialog").waitFor({ state: "visible" });
+  });
+});
+
 test("depósito y transferencia se distinguen sin pedir tipo de depósito", async () => {
   await withPage(async page => {
     assert.equal(await page.locator("#deposit-type").count(), 0);

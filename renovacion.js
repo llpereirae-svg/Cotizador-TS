@@ -71,6 +71,8 @@ let selectedMethod = "banco";
 let operationRevision = 0;
 let receiptRevision = 0;
 let pendingSubmission = null;
+let codeRequestInFlight = false;
+let verificationInFlight = false;
 const bankDetails = document.querySelector(".bank-details");
 const bankSummary = bankDetails.querySelector("summary");
 
@@ -99,6 +101,7 @@ function selectMethod(button) {
     return;
   }
   noteOperationChange();
+  resetCode();
   const selected = button.dataset.method;
   selectedMethod = selected;
   methods.forEach(option => {
@@ -114,6 +117,7 @@ function selectMethod(button) {
 
 operation.addEventListener("change", () => {
   noteOperationChange();
+  resetCode();
 });
 
 methods.forEach((button, index) => {
@@ -151,12 +155,26 @@ function validReceipt(file) {
 }
 
 async function openCodeDemo() {
-  const revision = receiptRevision;
-  await demoRenewalAdapter.requestEmailCode();
-  if (revision !== receiptRevision) return;
-  codeEntry.hidden = false;
-  codeMessage.textContent = "";
-  if (!codeDialog.open) codeDialog.showModal();
+  if (codeRequestInFlight) return;
+  codeRequestInFlight = true;
+  const revision = ++receiptRevision;
+  finishRenewal.hidden = true;
+  codeVerified = false;
+  verificationReference = null;
+  codeInput.value = "";
+  renewalButton.disabled = true;
+  try {
+    await demoRenewalAdapter.requestEmailCode();
+    if (revision !== receiptRevision) return;
+    codeEntry.hidden = false;
+    codeMessage.textContent = "";
+    if (!codeDialog.open) codeDialog.showModal();
+  } catch {
+    if (revision === receiptRevision) transferMessage.textContent = "No se pudo iniciar la verificación. Intenta nuevamente.";
+  } finally {
+    codeRequestInFlight = false;
+    renewalButton.disabled = cardPending;
+  }
 }
 
 document.addEventListener("sandbox-payment-approved", () => { pendingSubmission = null; void openCodeDemo(); });
@@ -183,6 +201,10 @@ for (const button of document.querySelectorAll(".copy-account")) {
 }
 
 document.querySelector("#verify-code").addEventListener("click", async () => {
+  if (verificationInFlight || codeVerified) return;
+  verificationInFlight = true;
+  document.querySelector("#verify-code").disabled = true;
+  try {
   noteOperationChange();
   const revision = operationRevision;
   const result = await demoRenewalAdapter.verifyEmailCode(codeInput.value.trim());
@@ -193,11 +215,19 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
   if (pendingSubmission) {
     await demoRenewalAdapter.submitRenewal({ ...pendingSubmission, verificacionCorreoReferencia: verificationReference });
     if (revision !== operationRevision || cardPending) return;
+    pendingSubmission = null;
     transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
     transferMessage.dataset.kind = "complete";
   }
   codeMessage.textContent = "Código de prueba verificado. No se envió información real.";
   finishRenewal.hidden = false;
+  } catch {
+    codeVerified = false;
+    codeMessage.textContent = "No se pudo verificar el código. Intenta nuevamente.";
+  } finally {
+    verificationInFlight = false;
+    document.querySelector("#verify-code").disabled = false;
+  }
 });
 
 codeInput.addEventListener("input", () => {
@@ -298,6 +328,6 @@ receiptInput.addEventListener("change", () => {
 });
 
 for (const selector of ["#bank", "#payment-date", "#terms"]) {
-  document.querySelector(selector).addEventListener("change", noteOperationChange);
+  document.querySelector(selector).addEventListener("change", () => { noteOperationChange(); resetCode(); });
 }
-document.addEventListener("quotechange", noteOperationChange);
+document.addEventListener("quotechange", () => { noteOperationChange(); resetCode(); });
