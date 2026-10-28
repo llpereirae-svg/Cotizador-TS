@@ -37,6 +37,7 @@ async function withPage(run, options = {}) {
     await page.goto(new URL("/renovacion.html", baseUrl).href, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector("[data-monthly]")?.getAttribute("aria-invalid") === "false");
     await page.evaluate(async () => { const { demoRenewalAdapter } = await import("./renovacion-mock.js?v=20261028-2"); demoRenewalAdapter.finish = () => { window.demoFinished = (window.demoFinished || 0) + 1; }; });
+    if (!options.skipPlanConfirmation) await page.locator("#confirm-plan").click();
     await run(page);
     assert.deepEqual(blocked, [], "La maqueta no debe enviar datos ni realizar solicitudes externas.");
     assert.deepEqual(errors, [], "No debe haber errores de JavaScript.");
@@ -46,6 +47,21 @@ async function withPage(run, options = {}) {
 }
 
 const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.from("comprobante de prueba") });
+
+test("confirmar cantidad muestra el pago y permite modificarla antes de reservar", async () => {
+  await withPage(async page => {
+    assert.equal(await page.locator("#payment-card").isVisible(), false);
+    await page.locator("#confirm-plan").click();
+    assert.equal(await page.locator("#payment-card").isVisible(), true);
+    assert.equal(await page.locator("#monthly").isDisabled(), true);
+    await page.locator("#edit-plan").click();
+    assert.equal(await page.locator("#payment-card").isVisible(), false);
+    assert.equal(await page.locator("#monthly").isDisabled(), false);
+    await page.locator("#monthly").fill("12");
+    await page.locator("#confirm-plan").click();
+    assert.equal(await page.locator("[data-quote-value=annual]").innerText(), "144");
+  }, { skipPlanConfirmation: true });
+});
 
 test("el resumen y el contrato usan el mismo JSON sin interpretar HTML", async () => {
   await withPage(async page => {
@@ -180,7 +196,7 @@ test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente",
     await page.locator("[data-method=tarjeta]").click();
     await page.locator("#simulate-pending").evaluate(button => button.click());
     await page.locator("[data-method=banco]").click();
-    await page.locator("[data-monthly]").fill("20");
+    assert.equal(await page.locator("[data-monthly]").isDisabled(), true);
     await page.locator("#bank").selectOption("banco-pacifico-ahorros");
     await page.locator("#payment-date").fill("2026-11-01");
     assert.equal(await page.locator("#transfer-pending").isVisible(), true);
