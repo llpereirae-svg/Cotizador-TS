@@ -51,7 +51,7 @@ try {
       const closeTest = document.createElement('button');
       closeTest.type = 'button';
       closeTest.className = 'button-secondary action-button';
-      closeTest.textContent = 'No ingresé datos ni pagué';
+      closeTest.textContent = 'Cancelar';
       closeTest.addEventListener('click', async () => {
         if (!window.confirm('Solo para esta prueba: ¿confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
         closeTest.disabled = true;
