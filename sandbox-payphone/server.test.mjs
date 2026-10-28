@@ -240,6 +240,21 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     const cookie = refreshed.headers['set-cookie'][0].split(';')[0];
     const state = JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie } })).body);
     assert.equal(state.active, null);
+    const freshContext = await browser.newContext({ serviceWorkers: 'block' });
+    const freshPage = await freshContext.newPage();
+    let freshReservations = 0;
+    freshPage.on('request', request => { if (request.url().endsWith('/sandbox-payphone/reservar')) freshReservations++; });
+    const freshState = freshPage.waitForResponse(response => response.url().endsWith('/sandbox-payphone/estado'));
+    await freshPage.goto(`http://localhost:${port}/renovacion.html`);
+    assert.equal((await (await freshState).json()).active, null, 'Una sesión nueva no recupera la orden finalizada.');
+    assert.equal(await freshPage.locator('#code-dialog').isVisible(), false);
+    await freshPage.locator('#confirm-plan').click();
+    await freshPage.locator('[data-method="tarjeta"]').click();
+    assert.equal(await freshPage.locator('#pending-message').isVisible(), false);
+    assert.equal(await freshPage.getByRole('button', { name: 'Continuar verificación' }).count(), 0);
+    assert.equal(await freshPage.locator('#card-terms').isEnabled(), true);
+    assert.equal(freshReservations, 0, 'Una sesión nueva no debe crear una orden al abrir tarjeta.');
+    await freshContext.close();
     const next = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers: { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' }, body: JSON.stringify({ monthly: 1, termsAccepted: true }) });
     assert.equal(next.status, 200, 'Una renovación finalizada permite una nueva reserva.');
   } finally {
