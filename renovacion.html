@@ -77,7 +77,7 @@
           </div>
           <div id="bank-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-banco">
            <div id="bank-form">
-            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito bancario.</p></div></div>
+            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito bancario.</p><p class="demo-disclosure">Vista previa: los comprobantes y pagos aún no están habilitados.</p></div></div>
             <div id="transfer-pending" class="pending-message" role="status" hidden><strong>Pago con tarjeta pendiente</strong><p>Confirma el estado del pago anterior antes de completar otro.</p></div>
             <details class="bank-details">
               <summary><span>Ver datos bancarios para transferir</span></summary>
@@ -100,15 +100,14 @@
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">Formatos admitidos: JPG, JPEG, PNG o PDF.<br>Tamaño máximo: 500 KB.</p></div>
             </div>
             <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
-            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button>.</span></div>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
-            <p class="demo-disclosure">Demostración: no envía comprobantes ni procesa pagos.</p>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
            </div>
           </div>
           <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
-            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button>.</span></div>
             <div class="card-placeholder" id="payphone-container">
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
               <div><strong>Pago con tarjeta no disponible</strong><p>Este método estará disponible más adelante.</p></div>
@@ -118,7 +117,7 @@
           </div>
           <details class="payment-info">
             <summary>Información a considerar</summary>
-            <ul><li>El plan de facturación prepago tiene una duración de un año.</li><li>El pago se revisará en dos horas hábiles. Si es indebido o fraudulento, el servicio podrá suspenderse.</li><li>El tratamiento de datos y las condiciones del servicio constan en el borrador del contrato.</li></ul>
+            <ul><li>El plan de facturación prepago tiene una duración de un año.</li><li>El pago se revisará en dos horas hábiles. Si es indebido o fraudulento, el servicio podrá suspenderse.</li><li>El tratamiento de datos y las condiciones del servicio constan en el contrato.</li></ul>
           </details>
         </div>
       </section>
@@ -127,7 +126,7 @@
   </main>
   <dialog id="terms-dialog" class="legal-dialog" aria-labelledby="terms-title">
     <div class="dialog-head"><h2 id="terms-title">Contrato de servicio prepago</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar términos">×</button></div>
-    <div class="dialog-content"><p class="draft-notice">Borrador para revisión jurídica. La identidad societaria, el canal de privacidad y las condiciones pendientes deben ser verificadas por TributaSoft antes de su uso contractual.</p>
+    <div class="dialog-content">
       <h3>1. Partes</h3><p>Comparecen TributaSoft S.A., con RUC 0992703601001, persona jurídica constituida en Ecuador y sujeta al control de la Superintendencia de Compañías, Valores y Seguros, en adelante «<strong>EL PROVEEDOR</strong>»; y <strong data-customer-name>cliente por identificar</strong>, con <span data-customer-type>identificación</span> <strong data-customer-id>—</strong>, en adelante «<strong>EL CLIENTE</strong>». Los datos societarios y la representación de las partes deberán verificarse antes de la contratación.</p>
       <h3>2. Objeto</h3><p><strong>EL PROVEEDOR</strong> facilitará al <strong>CLIENTE</strong> un servicio de facturación electrónica prepago para la emisión y gestión de comprobantes electrónicos aplicables ante el Servicio de Rentas Internas (SRI), así como la generación de reportes a partir de dichos comprobantes.</p>
       <h3>3. Vigencia y documentos</h3><p>El plan tendrá una vigencia de un año. La cantidad de documentos contratados y la fecha de vencimiento serán las informadas al <strong>CLIENTE</strong> y confirmadas para la operación.</p>

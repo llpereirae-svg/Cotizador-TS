@@ -144,7 +144,7 @@ test("los bancos se muestran en el desplegable solo para transferencia", async (
     await details.locator("summary").focus();
     await page.keyboard.press("Enter");
     assert.equal(await details.evaluate(node => node.open), true);
-    assert.match(await page.locator(".demo-disclosure").innerText(), /no envía comprobantes ni procesa pagos/i);
+    assert.match(await page.locator(".demo-disclosure").innerText(), /comprobantes y pagos aún no están habilitados/i);
     const accountValues = await details.locator(".bank-number strong").allTextContents();
     assert.equal(accountValues.length, 3);
     assert.ok(accountValues.every(value => /^\d{9,12}$/.test(value)), "Cada cuenta debe contener solo dígitos.");
