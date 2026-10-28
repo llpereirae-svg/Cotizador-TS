@@ -12,9 +12,14 @@ if (!["127.0.0.1", "localhost", "[::1]"].includes(baseUrl.hostname)) {
   throw new Error("Las pruebas solo admiten el servidor local de la maqueta.");
 }
 
-async function withPage(run) {
+async function withPage(run, options = {}) {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "es-EC" });
+  const page = await browser.newPage({
+    viewport: { width: options.width || 390, height: 844 },
+    locale: "es-EC",
+    timezoneId: "America/Guayaquil"
+  });
+  if (options.now) await page.clock.install({ time: new Date(options.now) });
   const blocked = [];
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -42,15 +47,15 @@ async function withPage(run) {
 const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.from("comprobante de prueba") });
 
 async function completeDemo(page) {
-  await page.locator("#bank").selectOption("banco-ejemplo");
+  await page.locator("#bank").selectOption("banco-pacifico-ahorros");
   await page.locator("#payment-date").fill("2026-11-01");
   await page.locator("#receipt").setInputFiles(sampleFile("primero.pdf"));
-  await page.locator("#simulate-code").click();
+  await page.locator("#code-entry").waitFor({ state: "visible" });
   await page.locator("#email-code").fill("123456");
   await page.locator("#verify-code").click();
   await page.locator("#terms").check();
   await page.locator("#simulate-renewal").click();
-  assert.match(await page.locator("#transfer-message").innerText(), /Simulación completada/);
+  assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
 
 test("cambiar el comprobante limpia el resultado y requiere verificar de nuevo", async () => {
@@ -58,8 +63,9 @@ test("cambiar el comprobante limpia el resultado y requiere verificar de nuevo",
     await completeDemo(page);
     await page.locator("#receipt").setInputFiles(sampleFile("segundo.pdf"));
     assert.equal(await page.locator("#transfer-message").innerText(), "");
-    assert.equal(await page.locator("#code-entry").isVisible(), false);
-    assert.match(await page.locator("#code-request-message").innerText(), /comprobante cambió/);
+    await page.locator("#code-entry").waitFor({ state: "visible" });
+    assert.equal(await page.locator("#email-code").inputValue(), "");
+    assert.match(await page.locator("#code-message").innerText(), /No se envió ningún correo/);
   });
 });
 
@@ -69,9 +75,98 @@ test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente",
     await page.locator("#simulate-pending").click();
     await page.locator("[data-method=transferencia]").click();
     await page.locator("[data-monthly]").fill("20");
-    await page.locator("#bank").selectOption("banco-ejemplo");
+    await page.locator("#bank").selectOption("banco-pacifico-ahorros");
     await page.locator("#payment-date").fill("2026-11-01");
     assert.equal(await page.locator("#transfer-pending").isVisible(), true);
     assert.equal(await page.locator("#simulate-renewal").isDisabled(), true);
   });
+});
+
+test("los bancos se muestran en el desplegable solo para transferencia", async () => {
+  await withPage(async page => {
+    const bankLabels = await page.locator("#bank option").allTextContents();
+    assert.deepEqual(bankLabels.slice(1), [
+      "Banco del Pacífico (ahorros)",
+      "Banco Pichincha (corriente)",
+      "Banco ProCredit (ahorros)"
+    ]);
+    const details = page.locator(".bank-details");
+    assert.equal(await details.locator("summary").innerText(), "Ver datos bancarios");
+    await details.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await details.evaluate(node => node.open), true);
+    assert.match(await details.locator(".bank-warning").innerText(), /no realices transferencias/i);
+    const accountValues = await details.locator(".bank-number strong").allTextContents();
+    assert.equal(accountValues.length, 3);
+    assert.ok(accountValues.every(value => /^\d{9,12}$/.test(value)), "Cada cuenta debe contener solo dígitos.");
+    await page.locator("[data-method=tarjeta]").click();
+    assert.equal(await details.isVisible(), false);
+    assert.equal(await page.locator("#payphone-container").isVisible(), true);
+    assert.equal(await page.locator("#payphone-container input").count(), 0);
+  });
+});
+
+for (const [now, expected, year] of [
+  ["2026-10-28T12:00:00-05:00", "2027-10-28", "2026"],
+  ["2024-02-29T12:00:00-05:00", "2025-02-28", "2024"],
+  ["2026-12-31T12:00:00-05:00", "2027-12-31", "2026"]
+]) {
+  test("la fecha de renovación es estimada y respeta el calendario para " + now.slice(0, 10), async () => {
+    await withPage(async page => {
+      assert.equal(await page.locator("#estimated-expiry").getAttribute("datetime"), expected);
+      assert.match(await page.locator(".summary-caption").innerText(), /Vencimiento estimado/);
+      assert.equal(await page.locator("#copyright-year").innerText(), year);
+    }, { now });
+  });
+}
+
+test("la fecha estimada y el copyright se actualizan al cambiar el día", async () => {
+  await withPage(async page => {
+    assert.equal(await page.locator("#estimated-expiry").getAttribute("datetime"), "2027-12-31");
+    await page.clock.fastForward(5000);
+    assert.equal(await page.locator("#estimated-expiry").getAttribute("datetime"), "2028-01-01");
+    assert.equal(await page.locator("#copyright-year").innerText(), "2027");
+  }, { now: "2026-12-31T23:59:58-05:00" });
+});
+
+
+test("archivos admitidos activan código simulado y los inválidos no", async () => {
+  await withPage(async page => {
+    const receipt = page.locator("#receipt");
+    assert.match(await receipt.getAttribute("accept"), /\.jpg/);
+    for (const [name, mimeType] of [["prueba.jpg", "image/jpeg"], ["prueba.jpeg", "image/jpeg"], ["prueba.png", "image/png"], ["prueba.pdf", "application/pdf"]]) {
+      await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(500000) });
+      await page.locator("#code-entry").waitFor({state: "visible"});
+      assert.match(await page.locator("#code-message").innerText(), /No se envió ningún correo/);
+    }
+    for (const [name, mimeType, size] of [["prueba.pdf", "application/pdf", 500001], ["prueba.exe", "application/octet-stream", 1], ["falso.pdf", "image/png", 1], ["vacio.pdf", "application/pdf", 0]]) {
+      await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(size) });
+      assert.equal(await page.locator("#code-entry").isVisible(), false);
+      assert.match(await page.locator("#code-request-message").innerText(), /500 KB/);
+    }
+  });
+});
+
+test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolverlo", async () => {
+  await withPage(async page => {
+    const details = page.locator(".bank-details");
+    await details.locator("summary").click();
+    assert.equal(await details.evaluate(node => node.open), true);
+    await page.locator("[data-method=tarjeta]").click();
+    await page.locator("#simulate-pending").click();
+    await page.locator("[data-method=transferencia]").click();
+    assert.equal(await details.evaluate(node => node.open), false);
+    await details.locator("summary").click();
+    assert.equal(await details.evaluate(node => node.open), false);
+    assert.equal(await page.locator("#transfer-pending").isVisible(), true);
+    await page.locator("#receipt").setInputFiles(sampleFile("prueba.pdf"));
+    assert.equal(await page.locator("#code-entry").isVisible(), false);
+    assert.match(await page.locator("#code-request-message").innerText(), /pendiente/);
+    await page.locator("[data-method=tarjeta]").click();
+    await page.locator("#simulate-cancelled").click();
+    await page.locator("[data-method=transferencia]").click();
+    await page.locator("#code-entry").waitFor({ state: "visible" });
+    await details.locator("summary").click();
+    assert.equal(await details.evaluate(node => node.open), true);
+  }, {width: 1366});
 });
