@@ -97,7 +97,6 @@
 .copy-account .icon { width: 17px; height: 17px; }
 .copy-account:hover { background: #eef4fa; }
 .copy-message:not(:empty) { margin: 10px 0 0; color: var(--navy); }
-.demo-disclosure { margin: 10px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
 
 /* Las cifras y los controles permanecen en su lugar durante los cambios. */
 @media (prefers-reduced-motion: no-preference) {
