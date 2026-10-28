@@ -34,13 +34,18 @@
 .legal-dialog::backdrop { background: rgba(18, 32, 51, .58); }
 .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .dialog-head h2 { margin: 0; }
+.code-title { display: flex; align-items: center; gap: 10px; }
+.code-title .icon { flex: 0 0 auto; width: 22px; height: 22px; color: var(--navy); }
 .dialog-close { width: 38px; height: 38px; border: 0; border-radius: 8px; background: #f1f6fb; color: var(--navy); font-size: 24px; }
 .dialog-content { min-height: 0; overflow-y: auto; margin-top: 16px; color: #52657b; font-size: 14px; }
 .dialog-content h3 { margin: 18px 0 5px; color: var(--text); font-size: 15px; }
 .dialog-content p { margin: 0 0 12px; }
-.draft-notice, .payment-notice { padding: 12px; border-radius: 8px; background: #f6f9fc; }
-.payment-notice strong { display: block; margin-bottom: 6px; color: #a64b00; }
-.payment-notice p { margin: 0; color: #285a50; }
+.draft-notice { padding: 12px; border-radius: 8px; background: #f6f9fc; }
+.payment-notice { margin-top: 18px; padding: 14px; border: 1px solid #f1c49e; border-radius: 9px; color: var(--text); background: transparent; }
+.payment-notice > strong { display: block; margin-bottom: 6px; color: var(--text); }
+.payment-notice p { margin: 0; color: var(--text); }
+.code-input { max-width: 200px; }
+.resend-prompt { margin-top: 10px !important; font-size: 13px; }
 .dialog-done { width: 100%; margin-top: 8px; }
 .dialog-scroll-hint { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
 .legal-dialog .code-entry { margin: 20px 0; }

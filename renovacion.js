@@ -176,6 +176,29 @@ async function openCodeDemo() {
 
 document.addEventListener("sandbox-payment-approved", () => { pendingSubmission = null; void openCodeDemo(); });
 
+document.querySelector("#resend-code").addEventListener("click", async event => {
+  if (codeRequestInFlight || verificationInFlight) return;
+  const resendButton = event.currentTarget;
+  codeRequestInFlight = true;
+  resendButton.disabled = true;
+  document.querySelector("#verify-code").disabled = true;
+  noteOperationChange();
+  const revision = ++receiptRevision;
+  codeVerified = false;
+  verificationReference = null;
+  codeInput.value = "";
+  try {
+    await demoRenewalAdapter.requestEmailCode();
+    if (revision === receiptRevision) codeMessage.textContent = "Reenvío simulado: no se ha enviado ningún correo.";
+  } catch {
+    if (revision === receiptRevision) codeMessage.textContent = "No se pudo solicitar otro código. Intenta nuevamente.";
+  } finally {
+    codeRequestInFlight = false;
+    resendButton.disabled = false;
+    document.querySelector("#verify-code").disabled = false;
+  }
+});
+
 bankSummary.addEventListener("click", event => {
   if (!cardPending) return;
   event.preventDefault();
