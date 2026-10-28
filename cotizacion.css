@@ -1,2 +1,21 @@
-.under-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 4px; color: #586a7e; font-size: 13px; }
-.under-note-dot { flex: 0 0 auto; width: 6px; height: 6px; margin-top: 7px; background: #ef8a31; border-radius: 50%; }
+.expiry-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 18px; color: #586779; font-size: 13px; }
+.expiry-row time { color: var(--text); font-weight: 600; text-align: right; }
+@media (max-width: 360px) {
+  .expiry-row { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .expiry-row time { text-align: left; }
+}
+
+@media (max-width: 360px) {
+  .preview-mark { font-size: 10px; padding: 5px 7px; }
+}
+
+/* Feedback visual breve, sin mover los valores de la cotización. */
+@media (prefers-reduced-motion: no-preference) {
+  .page-intro, .card { transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @starting-style {
+    .page-intro, .card { opacity: 0; }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .stepper button { transition: background-color 120ms ease; }
+  }
+}
