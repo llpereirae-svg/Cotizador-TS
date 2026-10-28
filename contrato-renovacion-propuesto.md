@@ -64,6 +64,10 @@ Si `tipoOperacion` es `deposito`, la maqueta requiere además `tipoDeposito`, co
 
 La página reserva el contenedor visual `#payphone-container` para la integración oficial de PayPhone; actualmente no procesa ni solicita datos de tarjeta. El backend debe crear y confirmar la operación, proteger sus credenciales, conciliar el resultado y evitar cobros duplicados. Un timeout no equivale a cancelación: el resultado debe quedar pendiente hasta confirmar el estado o el reverso. No reintentar un cobro ni completar otro pago mientras no se resuelva el estado anterior, aunque se permita cambiar de método o salir. El backend debe mantener y verificar este estado entre recargas y dispositivos. La maqueta solo conserva el estado en memoria y su botón de cancelación confirmada es una simulación, no una consulta ni una cancelación real.
 
+## Deuna
+
+Deuna es un método previsto para una fase posterior. No aparece como opción en la interfaz, no se inicia ningún pago y aún faltan su integración y las definiciones del backend.
+
 ## Estados que el backend debe definir
 
 Cotización disponible o inválida; comprobante recibido y pendiente de revisión; código enviado, verificado, vencido o inválido; pago de tarjeta pendiente, confirmado, rechazado o cancelado; renovación aceptada o rechazada. Las reglas de activación, emisión de factura, plazos y reversos deben ser verificadas con los responsables.

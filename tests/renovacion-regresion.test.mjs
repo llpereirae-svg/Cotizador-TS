@@ -75,7 +75,7 @@ test("tipo de depósito se exige solo para depósito y se incluye en la simulaci
     await select.selectOption("cheque");
     await page.locator("#simulate-renewal").click();
     assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "cheque");
-    await page.locator("#tab-transferencia").click();
+    await page.locator("#operation").selectOption("transferencia");
     assert.equal(await select.isVisible(), false);
     await page.locator("#simulate-renewal").click();
     assert.equal(await page.evaluate(() => Object.hasOwn(window.lastRenewal, "tipoDeposito")), false);
@@ -99,7 +99,7 @@ test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente",
   await withPage(async page => {
     await page.locator("[data-method=tarjeta]").click();
     await page.locator("#simulate-pending").click();
-    await page.locator("[data-method=transferencia]").click();
+    await page.locator("[data-method=banco]").click();
     await page.locator("[data-monthly]").fill("20");
     await page.locator("#bank").selectOption("banco-pacifico-ahorros");
     await page.locator("#payment-date").fill("2026-11-01");
@@ -132,20 +132,15 @@ test("los bancos se muestran en el desplegable solo para transferencia", async (
   });
 });
 
-test("las tres formas de pago muestran el panel correspondiente", async () => {
+test("las opciones bancaria y tarjeta muestran el panel correspondiente", async () => {
   await withPage(async page => {
     const methods = page.locator("[data-method]");
-    assert.deepEqual(await methods.evaluateAll(nodes => nodes.map(node => node.dataset.method)), ["deposito", "transferencia", "tarjeta"]);
+    assert.deepEqual(await methods.evaluateAll(nodes => nodes.map(node => node.dataset.method)), ["banco", "tarjeta"]);
     assert.equal(await page.locator("#payment-title").innerText(), "Forma de Pago");
-    for (const method of ["deposito", "transferencia"]) {
-      await page.locator(`[data-method=${method}]`).click();
-      const panel = method === "deposito" ? "#deposit-panel" : "#transfer-panel";
-      assert.equal(await page.locator(panel).isVisible(), true);
-      assert.equal(await page.locator("#card-panel").isVisible(), false);
-      assert.equal(await page.locator(`[data-method=${method}]`).getAttribute("aria-selected"), "true");
-    }
+    assert.equal(await page.locator("#bank-panel").isVisible(), true);
+    assert.deepEqual(await page.locator("#operation option").allTextContents(), ["Depósito", "Transferencia"]);
     await page.locator("[data-method=tarjeta]").click();
-    assert.equal(await page.locator("#transfer-panel").isVisible(), false);
+    assert.equal(await page.locator("#bank-panel").isVisible(), false);
     assert.equal(await page.locator("#card-panel").isVisible(), true);
     assert.equal(await page.locator(".payphone-logo").getAttribute("alt"), "PayPhone");
   });
@@ -153,19 +148,16 @@ test("las tres formas de pago muestran el panel correspondiente", async () => {
 
 test("las pestañas cambian con las flechas y conservan la opción en el formulario", async () => {
   await withPage(async page => {
-    const deposit = page.locator("#tab-deposito");
-    const transfer = page.locator("#tab-transferencia");
-    await deposit.focus();
+    const bank = page.locator("#tab-banco");
+    const card = page.locator("#tab-tarjeta");
+    await bank.focus();
     await page.keyboard.press("ArrowRight");
-    assert.equal(await transfer.getAttribute("aria-selected"), "true");
-    assert.equal(await transfer.evaluate(node => node === document.activeElement), true);
-    assert.equal(await page.locator("#transfer-panel #bank-form").count(), 1);
-    assert.match(await page.locator("#bank-method-description").innerText(), /transferencia bancaria/);
+    assert.equal(await card.getAttribute("aria-selected"), "true");
+    assert.equal(await card.evaluate(node => node === document.activeElement), true);
     await page.keyboard.press("End");
     assert.equal(await page.locator("#card-panel").isVisible(), true);
     await page.keyboard.press("Home");
-    assert.equal(await page.locator("#deposit-panel #bank-form").count(), 1);
-    assert.match(await page.locator("#bank-method-description").innerText(), /depósito bancario/);
+    assert.equal(await page.locator("#bank-panel #bank-form").count(), 1);
   });
 });
 
@@ -235,7 +227,7 @@ test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolv
     assert.equal(await details.evaluate(node => node.open), true);
     await page.locator("[data-method=tarjeta]").click();
     await page.locator("#simulate-pending").click();
-    await page.locator("[data-method=transferencia]").click();
+    await page.locator("[data-method=banco]").click();
     assert.equal(await details.evaluate(node => node.open), false);
     await details.locator("summary").click();
     assert.equal(await details.evaluate(node => node.open), false);
@@ -245,7 +237,7 @@ test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolv
     assert.match(await page.locator("#code-request-message").innerText(), /pendiente/);
     await page.locator("[data-method=tarjeta]").click();
     await page.locator("#simulate-cancelled").click();
-    await page.locator("[data-method=transferencia]").click();
+    await page.locator("[data-method=banco]").click();
     await page.locator("#code-entry").waitFor({ state: "visible" });
     await details.locator("summary").click();
     assert.equal(await details.evaluate(node => node.open), true);
