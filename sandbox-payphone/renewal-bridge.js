@@ -55,7 +55,7 @@ try {
 
 async function prepareCajita() {
   if (!ready || !wantsCard || started) return;
-  if (!terms.checked) { status.textContent = 'Acepta los términos antes de abrir la Cajita.'; return; }
+  if (!terms.checked) { status.textContent = ''; return; }
   const monthly = Number(field.value);
   if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) {
     status.textContent = 'Ingresa entre 1 y 10,000 documentos mensuales para la prueba.';

@@ -170,11 +170,13 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     await page.clock.install();
     let reservations = 0;
     page.on('request', request => { if (request.url().endsWith('/sandbox-payphone/reservar')) reservations++; });
+    const stateResponse = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/estado'));
     await page.goto(`http://localhost:${port}/renovacion.html`);
+    await stateResponse;
     assert.equal(reservations, 0, 'Abrir la página no debe reservar una operación.');
     await page.locator('[data-monthly]').fill('0');
     await page.locator('[data-method="tarjeta"]').click();
-    await page.waitForFunction(() => document.querySelector('#local-payphone-status').textContent.includes('Acepta'));
+    assert.equal(await page.locator('#local-payphone-status').innerText(), '');
     assert.equal(reservations, 0, 'Sin aceptar términos no debe abrirse la Cajita.');
     await page.locator('#card-terms').check();
     await page.waitForFunction(() => document.querySelector('#local-payphone-status').textContent.includes('10,000'));
