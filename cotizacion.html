@@ -16,7 +16,6 @@
         <img src="./assets/tributasoft-logo.png" alt="">
         <span class="brand-word" aria-hidden="true"><span class="brand-tributa">Tributa</span><span class="brand-soft">Soft</span></span>
       </div>
-      <span class="preview-mark">Vista previa · Sin cobros</span>
     </div>
   </header>
   <main class="page">
@@ -44,16 +43,18 @@
           </div>
         </section>
       </div>
-      <aside class="card summary-card" aria-label="Resumen de la cotización">
+      <aside class="card summary-card checkout-summary" aria-label="Resumen de la cotización">
         <div class="card-body">
-          <div class="summary-top"><div><h2>Tu plan anual</h2></div><span class="summary-period">12 meses</span></div>
-          <div class="annual-docs"><strong data-quote-value="annual">120</strong><span>documentos al año</span></div>
-          <div class="expiry-row"><span>Vencimiento estimado</span><time id="estimated-expiry">—</time></div>
-          <div class="summary-lines" aria-live="polite" aria-atomic="true">
-            <p class="summary-line"><span>Base imponible</span><strong data-quote-value="base">$30.00</strong></p>
-            <p class="summary-line"><span>IVA</span><strong data-quote-value="tax">$4.50</strong></p>
-          </div>
-          <div class="summary-total"><span>Total estimado</span><strong data-quote-value="total">$34.50</strong></div>
+          <h2>Tu cotización</h2>
+          <dl class="checkout-details">
+            <div class="checkout-row"><dt>Plan anual</dt><dd><strong aria-live="polite" data-quote-value="annual">120</strong> documentos</dd></div>
+            <div class="checkout-row summary-caption expiry-row"><dt>Vencimiento estimado</dt><dd><time id="estimated-expiry">—</time></dd></div>
+          </dl>
+          <dl class="checkout-prices" aria-live="polite" aria-atomic="true">
+            <div class="checkout-row"><dt>Base imponible</dt><dd data-quote-value="base">$30.00</dd></div>
+            <div class="checkout-row"><dt>IVA</dt><dd data-quote-value="tax">$4.50</dd></div>
+            <div class="checkout-row checkout-total"><dt>Total estimado</dt><dd data-quote-value="total">$34.50</dd></div>
+          </dl>
         </div>
       </aside>
     </div>

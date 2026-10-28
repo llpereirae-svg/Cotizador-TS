@@ -68,13 +68,7 @@ for (const width of [320, 390, 1366]) {
     await withPage({ instant: "2026-10-28T17:00:00Z", width }, async page => {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       assert.match(await page.locator("h1").innerText(), /Cotizador de prepago/);
-      assert.match(await page.locator(".preview-mark").innerText(), /Vista previa.*Sin cobros/);
-      const badgeFitsOneLine = await page.locator(".preview-mark").evaluate(node => {
-        const style = getComputedStyle(node);
-        const line = parseFloat(style.lineHeight);
-        return node.getBoundingClientRect().height <= line + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + 3;
-      });
-      assert.equal(badgeFitsOneLine, true);
+      assert.equal(await page.locator(".preview-mark").count(), 0);
       await page.locator("[data-monthly]").fill("10");
       assert.equal(await page.locator("[data-quote-value=annual]").innerText(), "120");
       assert.equal(await page.locator("[data-quote-value=total]").innerText(), "$34.50");
