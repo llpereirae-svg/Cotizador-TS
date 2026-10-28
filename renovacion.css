@@ -18,6 +18,8 @@
 .panel-title p, .verification p { margin: 0; color: var(--muted); font-size: 13px; }
 .fields-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px 14px; }
 .fields-grid > div, .fields-grid .field-control { min-width: 0; max-width: 100%; }
+.fields-grid input[type="date"] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; }
+.fields-grid input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .field-full { grid-column: 1 / -1; }
 .verification { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 23px; padding-top: 22px; border-top: 1px solid #e6ebf1; }
 .verification button { flex: 0 0 auto; }

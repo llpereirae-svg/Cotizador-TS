@@ -86,7 +86,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshExpiry();
 });
 
-document.querySelectorAll("[data-open-terms]").forEach(button => button.addEventListener("click", () => termsDialog.showModal()));
+document.querySelectorAll("[data-open-terms]").forEach(link => link.addEventListener("click", event => { event.preventDefault(); termsDialog.showModal(); }));
 document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => button.closest("dialog").close()));
 cardTerms.addEventListener("change", () => {
   if (selectedMethod === "tarjeta" && cardTerms.checked) document.dispatchEvent(new CustomEvent("paymentmethodchange", { detail: { method: "tarjeta" } }));
