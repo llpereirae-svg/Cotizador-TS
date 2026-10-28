@@ -43,6 +43,7 @@ test('túnel configurado permite su origen exacto y rechaza otros', async () => 
 
 test('reserva local, retorno validado y confirmación con proveedor simulado', async () => {
   let calls = 0;
+  const events = [];
   const fakeFetch = async (_url, request) => {
     calls++;
     const input = JSON.parse(request.body);
@@ -50,7 +51,7 @@ test('reserva local, retorno validado y confirmación con proveedor simulado', a
       clientTransactionId: input.clientTxId, amount: 966, currency: 'USD', statusCode: 3, transactionStatus: 'Approved' }) };
   };
   const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake',
-    dbPath: ':memory:', fetchImpl: fakeFetch });
+    dbPath: ':memory:', fetchImpl: fakeFetch, logger: event => events.push(event) });
   app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
   const port = app.server.address().port;
   try {
@@ -75,6 +76,7 @@ test('reserva local, retorno validado y confirmación con proveedor simulado', a
     assert.equal(result.status, 303);
     assert.equal(result.headers.location, '/renovacion.html');
     assert.equal(calls, 1);
+    assert.deepEqual(events, ['reserva_creada', 'reserva_rechazada_operacion_activa', 'retorno_recibido', 'confirmacion_iniciada', 'confirmacion_aprobada']);
     assert.equal((await send(port, callback, { headers: { cookie } })).status, 303);
     assert.equal(calls, 1);
   } finally {

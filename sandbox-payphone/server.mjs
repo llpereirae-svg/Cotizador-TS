@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
@@ -15,11 +15,12 @@ const browser = readFileSync(new URL('./test-page.js', import.meta.url), 'utf8')
 const bridge = readFileSync(new URL('./renewal-bridge.js', import.meta.url), 'utf8');
 
 /** Crea un servidor para prueba local y no lo inicia; el ambiente es declarado por el operador. */
-export function createSandboxServer({ enabled, sandboxVerified, token, storeId, dbPath, tunnelOrigin = '', fetchImpl = globalThis.fetch } = {}) {
+export function createSandboxServer({ enabled, sandboxVerified, token, storeId, dbPath, tunnelOrigin = '', fetchImpl = globalThis.fetch, logger = () => {} } = {}) {
   if (enabled !== true || sandboxVerified !== true || !token?.trim() || !storeId?.trim()) {
     throw new Error('Se requieren activación explícita y credenciales de prueba verificadas.');
   }
   if (typeof fetchImpl !== 'function' || typeof dbPath !== 'string') throw new Error('Faltan dependencias locales.');
+  const logEvent = event => { try { logger(event); } catch { /* el registro no debe alterar la confirmación */ } };
   if (tunnelOrigin && !/^https:\/\/[a-z0-9-]+\.use\.devtunnels\.ms$/.test(tunnelOrigin)) {
     throw new Error('El origen del túnel privado no es válido.');
   }
@@ -108,12 +109,14 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       const clientTransactionId = 'local-' + randomUUID();
       const order = { renewalRef: 'demo-unica', clientTransactionId, amountCents: quote.totalCents, currency: 'USD', monthly };
       if (!store.reserve(order)) {
+        logEvent('reserva_rechazada_operacion_activa');
         res.writeHead(409, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Hay un intento existente. Consulta su estado antes de continuar.' }));
       }
       const reservation = { status: 'reserved', clientTransactionId, reference: 'Prueba local TributaSoft',
         currency: 'USD', amount: quote.totalCents, amountWithoutTax: 0, amountWithTax: quote.baseCents, tax: quote.taxCents, service: 0, tip: 0 };
       const config = buildSandboxCajitaConfig({ mode: 'test', sandboxVerified: true, siteOrigin: origin, token, storeId, reservation });
+      logEvent('reserva_creada');
       res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(config));
     }
     if (req.method === 'GET' && url.pathname === '/respuesta-payphone.html') {
@@ -126,12 +129,16 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
         return html(res, 400, 'Retorno inválido; la operación queda pendiente.');
       }
       const order = store.get(clientTransactionId);
+      logEvent('retorno_recibido');
       if (!order) return html(res, 404, 'Orden no encontrada; no se confirmó ningún pago.');
       if (order.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html' }); return res.end(); }
       if (order.status !== 'reserved') {
         return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(order.status)}. No reintentes si sigue pendiente.`);
       }
+      logEvent('confirmacion_iniciada');
       const result = await client.confirm({ id, clientTransactionId, order });
+      const pendingReasons = new Set(['already_claimed', 'claim_unavailable', 'invalid_order', 'provider_timeout', 'record_unavailable', 'unresolved']);
+      logEvent(result.status === 'approved' ? 'confirmacion_aprobada' : result.status === 'canceled' ? 'confirmacion_cancelada' : `confirmacion_pendiente_${pendingReasons.has(result.reason) ? result.reason : 'desconocida'}`);
       if (result.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html' }); return res.end(); }
       if (result.status === 'canceled') { res.writeHead(303, { Location: '/renovacion.html?cancelada=' + encodeURIComponent(clientTransactionId) }); return res.end(); }
       return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(result.status)}. Si está pendiente, verifica el resultado con PayPhone antes de reintentar.`);
@@ -147,9 +154,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   const folder = join(tmpdir(), 'tributasoft-payphone-local');
   mkdirSync(folder, { recursive: true });
+  const logger = event => appendFileSync(join(folder, 'eventos.log'), `${new Date().toISOString()} ${event}\n`, { encoding: 'utf8', mode: 0o600 });
   const app = createSandboxServer({ enabled: true, sandboxVerified: true,
     token: process.env.PAYPHONE_TEST_TOKEN, storeId: process.env.PAYPHONE_TEST_STORE_ID,
-    dbPath: join(folder, 'attempts.sqlite'), tunnelOrigin: process.env.PAYPHONE_TEST_TUNNEL_ORIGIN || '' });
+    dbPath: join(folder, 'attempts.sqlite'), tunnelOrigin: process.env.PAYPHONE_TEST_TUNNEL_ORIGIN || '', logger });
   app.server.listen(8131, '127.0.0.1', () => process.stdout.write('Servidor de pruebas activo solo en localhost.\n'));
   const stop = () => app.server.close(() => { app.closeStore(); process.exit(0); });
   process.once('SIGINT', stop); process.once('SIGTERM', stop);
