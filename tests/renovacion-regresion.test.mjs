@@ -251,3 +251,17 @@ test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolv
     assert.equal(await details.evaluate(node => node.open), true);
   }, {width: 1366});
 });
+
+test("en móvil horizontal el resumen queda a la derecha y el logo permanece visible", async () => {
+  await withPage(async page => {
+    await page.setViewportSize({ width: 667, height: 375 });
+    const consumo = await page.locator(".usage-card").boundingBox();
+    const resumen = await page.locator(".summary-card").boundingBox();
+    assert.ok(resumen.x >= consumo.x + consumo.width);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.evaluate(() => scrollTo(0, 300));
+    assert.equal(Math.round((await page.locator(".site-header").boundingBox()).y), 0);
+    await page.locator("[data-method=tarjeta]").click();
+    assert.equal(await page.locator("#card-panel").isVisible(), true);
+  });
+});
