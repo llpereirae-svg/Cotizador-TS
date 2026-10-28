@@ -46,16 +46,31 @@ async function withPage(run, options = {}) {
 
 const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.from("comprobante de prueba") });
 
+test("los términos se leen sin marcar la casilla y la verificación comienza al continuar", async () => {
+  await withPage(async page => {
+    assert.equal(await page.getByText("Verificación por correo").count(), 0);
+    await page.locator("[data-open-terms]").first().click();
+    assert.equal(await page.locator("#terms-dialog").isVisible(), true);
+    assert.equal(await page.locator("#terms").isChecked(), false);
+    await page.locator("#terms-dialog .dialog-done").click();
+    await page.locator("#receipt").setInputFiles(sampleFile("ejemplo.pdf"));
+    assert.equal(await page.locator("#code-dialog").isVisible(), false);
+    await page.locator("[data-method=tarjeta]").click();
+    assert.equal(await page.locator("#card-terms").isChecked(), false);
+  });
+});
+
 async function completeDemo(page) {
   await page.locator("#bank").selectOption("banco-pacifico-ahorros");
   if (await page.locator("#deposit-type").isVisible()) await page.locator("#deposit-type").selectOption("efectivo");
   await page.locator("#payment-date").fill("2026-11-01");
   await page.locator("#receipt").setInputFiles(sampleFile("primero.pdf"));
+  await page.locator("#terms").check();
+  await page.locator("#simulate-renewal").click();
   await page.locator("#code-entry").waitFor({ state: "visible" });
   await page.locator("#email-code").fill("123456");
   await page.locator("#verify-code").click();
-  await page.locator("#terms").check();
-  await page.locator("#simulate-renewal").click();
+  await page.locator("#code-dialog [data-close-dialog]").click();
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
 
@@ -74,10 +89,16 @@ test("tipo de depósito se exige solo para depósito y se incluye en la simulaci
     assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "efectivo");
     await select.selectOption("cheque");
     await page.locator("#simulate-renewal").click();
+    await page.locator("#email-code").fill("123456");
+    await page.locator("#verify-code").click();
+    await page.locator("#code-dialog [data-close-dialog]").click();
     assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "cheque");
     await page.locator("#operation").selectOption("transferencia");
     assert.equal(await select.isVisible(), false);
     await page.locator("#simulate-renewal").click();
+    await page.locator("#email-code").fill("123456");
+    await page.locator("#verify-code").click();
+    await page.locator("#code-dialog [data-close-dialog]").click();
     assert.equal(await page.evaluate(() => Object.hasOwn(window.lastRenewal, "tipoDeposito")), false);
     await page.locator("#tab-tarjeta").click();
     assert.equal(await select.isVisible(), false);
@@ -89,9 +110,8 @@ test("cambiar el comprobante limpia el resultado y requiere verificar de nuevo",
     await completeDemo(page);
     await page.locator("#receipt").setInputFiles(sampleFile("segundo.pdf"));
     assert.equal(await page.locator("#transfer-message").innerText(), "");
-    await page.locator("#code-entry").waitFor({ state: "visible" });
     assert.equal(await page.locator("#email-code").inputValue(), "");
-    assert.match(await page.locator("#code-message").innerText(), /No se envió ningún correo/);
+    assert.equal(await page.locator("#code-dialog").isVisible(), false);
   });
 });
 
@@ -203,14 +223,14 @@ test("la fecha estimada y el copyright se actualizan al cambiar el día", async 
 });
 
 
-test("archivos admitidos activan código simulado y los inválidos no", async () => {
+test("archivos admitidos no abren la verificación antes de continuar y los inválidos se rechazan", async () => {
   await withPage(async page => {
     const receipt = page.locator("#receipt");
     assert.match(await receipt.getAttribute("accept"), /\.jpg/);
     for (const [name, mimeType] of [["prueba.jpg", "image/jpeg"], ["prueba.jpeg", "image/jpeg"], ["prueba.png", "image/png"], ["prueba.pdf", "application/pdf"]]) {
       await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(500000) });
-      await page.locator("#code-entry").waitFor({state: "visible"});
-      assert.match(await page.locator("#code-message").innerText(), /No se envió ningún correo/);
+      assert.equal(await page.locator("#code-dialog").isVisible(), false);
+      assert.equal(await page.locator("#code-request-message").isVisible(), false);
     }
     for (const [name, mimeType, size] of [["prueba.pdf", "application/pdf", 500001], ["prueba.exe", "application/octet-stream", 1], ["falso.pdf", "image/png", 1], ["vacio.pdf", "application/pdf", 0]]) {
       await receipt.setInputFiles({ name, mimeType, buffer: Buffer.alloc(size) });
@@ -238,7 +258,7 @@ test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolv
     await page.locator("[data-method=tarjeta]").click();
     await page.locator("#simulate-cancelled").click();
     await page.locator("[data-method=banco]").click();
-    await page.locator("#code-entry").waitFor({ state: "visible" });
+    assert.equal(await page.locator("#code-dialog").isVisible(), false);
     await details.locator("summary").click();
     assert.equal(await details.evaluate(node => node.open), true);
   }, {width: 1366});

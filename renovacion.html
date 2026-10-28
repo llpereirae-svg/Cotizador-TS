@@ -99,22 +99,15 @@
               <div class="field-full" id="deposit-type-field"><label class="field-label" for="deposit-type">Tipo de depósito</label><select class="field-control" id="deposit-type" required><option value="">Selecciona una opción</option><option value="cheque">Cheque</option><option value="efectivo">Efectivo</option></select></div>
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">Formatos admitidos: JPG, JPEG, PNG o PDF.<br>Tamaño máximo: 500 KB.</p></div>
             </div>
-            <div class="verification">
-              <div><h3>Verificación por correo</h3><p>Al seleccionar un comprobante válido, se inicia la solicitud de prueba.</p></div>
-            </div>
             <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
-            <div class="code-entry" id="code-entry" hidden>
-              <label class="field-label" for="email-code">Código de ejemplo: 123456</label>
-              <div class="code-row"><input class="field-control" id="email-code" inputmode="numeric" maxlength="6" autocomplete="off"><button class="button-secondary" type="button" id="verify-code">Verificar</button></div>
-              <p id="code-message" class="field-hint" role="status" aria-live="polite"></p>
-            </div>
-            <label class="terms-check"><input type="checkbox" id="terms"><span>He visto que los términos y condiciones aún no están disponibles.</span></label>
+            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones</button> (borrador).</span></div>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
            </div>
           </div>
           <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
+            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones</button> (borrador).</span></div>
             <div class="card-placeholder" id="payphone-container">
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
               <div><strong>Pago con tarjeta no disponible</strong><p>Este método estará disponible más adelante.</p></div>
@@ -131,6 +124,23 @@
     </div>
     <footer class="note-footer">© <span id="copyright-year"></span> TributaSoft S.A.</footer>
   </main>
+  <dialog id="terms-dialog" class="legal-dialog" aria-labelledby="terms-title">
+    <div class="dialog-head"><h2 id="terms-title">Términos y condiciones</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar términos">×</button></div>
+    <div class="dialog-content"><p class="draft-notice">Borrador para revisión. Las condiciones definitivas deben ser aprobadas por TributaSoft.</p>
+      <h3>Plan prepago</h3><p>El plan de facturación electrónica tiene una duración de un año. La cantidad de documentos, el importe y el vencimiento deben confirmarse antes del pago.</p>
+      <h3>Pago y comprobante</h3><p>El pago puede realizarse mediante transferencia, depósito o tarjeta cuando el método esté disponible. Para transferencias o depósitos, se debe proporcionar el comprobante correspondiente.</p>
+      <h3>Revisión del pago</h3><p>TributaSoft revisará la información del pago. Si no coincide, el servicio podría suspenderse y aplicarse un cargo administrativo de $10 más IVA, sujeto a las condiciones definitivas.</p>
+      <h3>Confirmación</h3><p>El proceso y las condiciones de activación serán confirmados por TributaSoft. Este borrador no constituye la versión contractual final.</p>
+    </div>
+    <button type="button" class="button-primary dialog-done" data-close-dialog>Entendido</button>
+  </dialog>
+  <dialog id="code-dialog" class="legal-dialog" aria-labelledby="code-title">
+    <div class="dialog-head"><h2 id="code-title">Confirma tu correo</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar verificación">×</button></div>
+    <div class="dialog-content"><p>Ingresa el código enviado al correo asociado a tu cuenta para continuar.</p><p class="draft-notice">Demostración: no se ha enviado ningún correo. Usa el código de ejemplo.</p>
+      <div class="code-entry" id="code-entry" hidden><label class="field-label" for="email-code">Código de ejemplo: 123456</label><div class="code-row"><input class="field-control" id="email-code" inputmode="numeric" maxlength="6" autocomplete="off"><button class="button-secondary" type="button" id="verify-code">Verificar</button></div><p id="code-message" class="field-hint" role="status" aria-live="polite"></p></div>
+      <p class="payment-notice">El pago será revisado. Si no coincide, el servicio podría suspenderse y aplicarse un cargo administrativo de $10 más IVA, sujeto a las condiciones definitivas.</p>
+    </div>
+  </dialog>
   <script type="module" src="./renovacion.js"></script>
 </body>
 </html>

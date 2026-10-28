@@ -41,6 +41,9 @@ const transferPending = document.querySelector("#transfer-pending");
 const cardResolutionMessage = document.querySelector("#card-resolution-message");
 const codeInput = document.querySelector("#email-code");
 const codeMessage = document.querySelector("#code-message");
+const codeDialog = document.querySelector("#code-dialog");
+const termsDialog = document.querySelector("#terms-dialog");
+const cardTerms = document.querySelector("#card-terms");
 const transferMessage = document.querySelector("#transfer-message");
 const pendingMessage = document.querySelector("#pending-message");
 let codeVerified = false;
@@ -49,6 +52,7 @@ let cardPending = false;
 let selectedMethod = "banco";
 let operationRevision = 0;
 let receiptRevision = 0;
+let pendingSubmission = null;
 const bankDetails = document.querySelector(".bank-details");
 const bankSummary = bankDetails.querySelector("summary");
 
@@ -63,6 +67,12 @@ function noteOperationChange() {
 refreshExpiry();
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshExpiry();
+});
+
+document.querySelectorAll("[data-open-terms]").forEach(button => button.addEventListener("click", () => termsDialog.showModal()));
+document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => button.closest("dialog").close()));
+cardTerms.addEventListener("change", () => {
+  if (selectedMethod === "tarjeta" && cardTerms.checked) document.dispatchEvent(new CustomEvent("paymentmethodchange", { detail: { method: "tarjeta" } }));
 });
 
 function selectMethod(button) {
@@ -110,6 +120,7 @@ function resetCode() {
   receiptRevision += 1;
   codeVerified = false;
   verificationReference = null;
+  pendingSubmission = null;
   codeInput.value = "";
   codeEntry.hidden = true;
   codeMessage.textContent = "";
@@ -123,18 +134,16 @@ function validReceipt(file) {
   return !file.type || file.type.toLowerCase() === allowedTypes[match[1].toLowerCase()];
 }
 
-async function requestCodeForReceipt() {
-  const file = receiptInput.files[0];
-  if (!validReceipt(file) || cardPending) return;
+async function openCodeDemo() {
   const revision = receiptRevision;
-  codeRequestMessage.textContent = "Preparando código de prueba…";
-  codeRequestMessage.hidden = false;
   await demoRenewalAdapter.requestEmailCode();
-  if (revision !== receiptRevision || cardPending || receiptInput.files[0] !== file) return;
-  codeRequestMessage.hidden = true;
+  if (revision !== receiptRevision) return;
   codeEntry.hidden = false;
-  codeMessage.textContent = "No se envió ningún correo. Usa el código de ejemplo para probar.";
+  codeMessage.textContent = "";
+  if (!codeDialog.open) codeDialog.showModal();
 }
+
+document.addEventListener("sandbox-payment-approved", () => { pendingSubmission = null; void openCodeDemo(); });
 
 bankSummary.addEventListener("click", event => {
   if (!cardPending) return;
@@ -164,7 +173,14 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
   if (revision !== operationRevision) return;
   codeVerified = result.valid;
   verificationReference = result.verificacionReferencia;
-  codeMessage.textContent = result.valid ? "Código de prueba verificado." : "El código de prueba no coincide.";
+  if (!result.valid) { codeMessage.textContent = "El código de prueba no coincide."; return; }
+  if (pendingSubmission) {
+    await demoRenewalAdapter.submitRenewal({ ...pendingSubmission, verificacionCorreoReferencia: verificationReference });
+    if (revision !== operationRevision || cardPending) return;
+    transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
+    transferMessage.dataset.kind = "complete";
+  }
+  codeMessage.textContent = "Código de prueba verificado. No se envió información real.";
 });
 
 codeInput.addEventListener("input", () => {
@@ -201,13 +217,12 @@ renewalButton.addEventListener("click", async () => {
     depositType.focus();
     return;
   }
-  if (!bank || !paymentDate || !receiptSelected || !codeVerified || !terms) {
-    transferMessage.textContent = "Completa los datos, selecciona un archivo, verifica el código y confirma los términos pendientes.";
+  if (!bank || !paymentDate || !receiptSelected || !terms) {
+    transferMessage.textContent = "Completa los datos, selecciona un archivo y acepta los términos.";
     transferMessage.dataset.kind = "validation";
     return;
   }
-  const revision = operationRevision;
-  await demoRenewalAdapter.submitRenewal({
+  pendingSubmission = {
     documentosPorMes: currentQuote.monthly,
     documentosPorAnio: currentQuote.annual,
     fechaVencimiento: expiryEstimate.iso,
@@ -216,12 +231,9 @@ renewalButton.addEventListener("click", async () => {
     tipoOperacion: operationType,
     ...(operationType === "deposito" ? { tipoDeposito: depositType.value } : {}),
     fechaPago: paymentDate,
-    comprobanteSeleccionado: receiptSelected,
-    verificacionCorreoReferencia: verificationReference
-  });
-  if (revision !== operationRevision || cardPending) return;
-  transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
-  transferMessage.dataset.kind = "complete";
+    comprobanteSeleccionado: receiptSelected
+  };
+  void openCodeDemo();
 });
 
 document.querySelector("#simulate-pending").addEventListener("click", () => {
@@ -242,7 +254,6 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
 document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardPending = false;
   bankSummary.removeAttribute("aria-disabled");
-  void requestCodeForReceipt();
   pendingMessage.hidden = true;
   transferPending.hidden = true;
   renewalButton.disabled = false;
@@ -272,7 +283,7 @@ receiptInput.addEventListener("change", () => {
     codeRequestMessage.hidden = false;
     return;
   }
-  void requestCodeForReceipt();
+  codeRequestMessage.hidden = true;
 });
 
 for (const selector of ["#bank", "#deposit-type", "#payment-date", "#terms"]) {
