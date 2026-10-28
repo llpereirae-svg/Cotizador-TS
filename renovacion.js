@@ -20,6 +20,12 @@ export function renderCustomerContext() {
 }
 renderCustomerContext();
 
+const paymentDateInput = document.querySelector("#payment-date");
+if (!paymentDateInput.value) {
+  const today = new Date();
+  paymentDateInput.value = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+}
+
 function estimateExpiry(today) {
   const year = today.getFullYear() + 1;
   const month = today.getMonth();
