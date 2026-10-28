@@ -7,7 +7,7 @@
   <title>Renueva tu plan | TributaSoft</title>
   <link rel="icon" href="./assets/tributasoft-logo.png">
   <link rel="stylesheet" href="./assets/base.css">
-  <link rel="stylesheet" href="./renovacion.css?v=20261028-13">
+  <link rel="stylesheet" href="./renovacion.css?v=20261028-14">
 </head>
 <body>
   <header class="site-header">
@@ -39,6 +39,7 @@
               <button type="button" data-increase aria-label="Aumentar documentos por mes">+</button>
             </div>
             <p id="quote-error" data-quote-error class="field-error" hidden>Ingresa un número entero mayor que cero.</p>
+            <button type="button" id="confirm-plan" class="button-primary confirm-plan">Confirmar cantidad</button>
           </div>
         </div>
       </section>
@@ -57,12 +58,13 @@
           <p class="plan-note">Tu plan de facturación prepago tiene una duración de un año.</p>
         </div>
       </aside>
-      <section class="card payment-card" aria-labelledby="payment-title">
+      <section class="card payment-card" id="payment-card" aria-labelledby="payment-title" hidden>
         <div class="card-body">
           <div class="section-heading">
             <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
             <div><h2 id="payment-title">Forma de Pago</h2></div>
           </div>
+          <button type="button" id="edit-plan" class="text-link edit-plan">Modificar documentos</button>
           <div class="payment-options" role="tablist" aria-label="Forma de pago">
             <button class="payment-option is-selected" id="tab-banco" type="button" role="tab" data-method="banco" aria-selected="true" aria-controls="bank-panel">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-5 9 5M4 10h16M5 20h14M7 10v8M12 10v8M17 10v8M3 21h18"/></svg>
@@ -147,6 +149,6 @@
     </div>
   </dialog>
   <script id="customer-context" type="application/json">{"tipoIdentificacion":"RUC","identificacion":"0999999999001","nombre":"Cliente de ejemplo","simulado":true}</script>
-  <script type="module" src="./renovacion.js?v=20261028-9"></script>
+  <script type="module" src="./renovacion.js?v=20261028-10"></script>
 </body>
 </html>

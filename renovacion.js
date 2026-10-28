@@ -49,6 +49,10 @@ const quote = mountQuote();
 const methods = [...document.querySelectorAll("[data-method]")];
 const bankPanel = document.querySelector("#bank-panel");
 const cardPanel = document.querySelector("#card-panel");
+const paymentCard = document.querySelector("#payment-card");
+const confirmPlan = document.querySelector("#confirm-plan");
+const editPlan = document.querySelector("#edit-plan");
+const quantityControls = [...document.querySelectorAll("[data-monthly], [data-increase], [data-decrease]")];
 const operation = document.querySelector("#operation");
 const codeEntry = document.querySelector("#code-entry");
 const codeRequestMessage = document.querySelector("#code-request-message");
@@ -74,6 +78,28 @@ let codeRequestInFlight = false;
 let verificationInFlight = false;
 const bankDetails = document.querySelector(".bank-details");
 const bankSummary = bankDetails.querySelector("summary");
+
+function revealPayment() {
+  paymentCard.hidden = false;
+  confirmPlan.hidden = true;
+  quantityControls.forEach(control => { control.disabled = true; });
+}
+
+confirmPlan.addEventListener("click", () => {
+  if (!quote.current()) { document.querySelector("#monthly").focus(); return; }
+  revealPayment();
+  paymentCard.scrollIntoView({ block: "start", behavior: "smooth" });
+});
+
+editPlan.addEventListener("click", () => {
+  if (cardPending || codeRequestInFlight || verificationInFlight) return;
+  noteOperationChange();
+  resetCode();
+  paymentCard.hidden = true;
+  confirmPlan.hidden = false;
+  quantityControls.forEach(control => { control.disabled = false; });
+  document.querySelector("#monthly").focus();
+});
 
 function noteOperationChange() {
   operationRevision += 1;
@@ -239,7 +265,7 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
     transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
     transferMessage.dataset.kind = "complete";
   }
-  demoRenewalAdapter.finish();
+  await demoRenewalAdapter.finish(codeInput.value.trim());
   } catch {
     codeVerified = false;
     codeMessage.textContent = "No se pudo verificar el código. Intenta nuevamente.";
@@ -296,8 +322,10 @@ renewalButton.addEventListener("click", async () => {
 });
 
 document.querySelector("#simulate-pending").addEventListener("click", () => {
+  revealPayment();
   noteOperationChange();
   cardPending = true;
+  editPlan.disabled = true;
   resetCode();
   bankDetails.open = false;
   bankSummary.setAttribute("aria-disabled", "true");
@@ -312,6 +340,7 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
 
 document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardPending = false;
+  editPlan.disabled = false;
   bankSummary.removeAttribute("aria-disabled");
   pendingMessage.hidden = true;
   transferPending.hidden = true;
