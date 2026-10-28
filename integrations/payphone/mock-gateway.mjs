@@ -1,55 +1,15 @@
 /**
  * Simulación local de la respuesta de la Cajita de Payphone.
- *
- * NO conecta con Payphone. La memoria se pierde al cerrar el proceso;
- * esta herramienta es exclusivamente para pruebas y prototipos.
+ * NO conecta con Payphone. Solo para pruebas y prototipos.
  */
+import {
+  requiredText,
+  positiveInteger,
+  buildConfirmBody,
+  evaluatePayphoneConfirmation as evaluateMockConfirmation
+} from './protocol.mjs';
 
-function requiredText(value, label) {
-  if (typeof value !== 'string' || !value.trim()) {
-    throw new TypeError(label + ' debe ser texto no vacío.');
-  }
-  return value.trim();
-}
-
-function positiveInteger(value, label) {
-  const number = typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : value;
-  if (!Number.isSafeInteger(number) || number <= 0) {
-    throw new TypeError(label + ' debe ser un entero positivo.');
-  }
-  return number;
-}
-
-/** Cuerpo documentado por Payphone para la llamada de confirmación. */
-export function buildConfirmBody({ id, clientTransactionId }) {
-  return {
-    id: positiveInteger(id, 'id'),
-    clientTxId: requiredText(clientTransactionId, 'clientTransactionId')
-  };
-}
-
-/**
- * Compara solo los campos necesarios con la orden autorizada por el backend.
- * Las respuestas desconocidas o inconsistentes permanecen pendientes.
- */
-export function evaluateMockConfirmation({ response, id, clientTransactionId, expectedAmountCents, currency }) {
-  const expectedId = positiveInteger(id, 'id');
-  const expectedClientId = requiredText(clientTransactionId, 'clientTransactionId');
-  const amount = positiveInteger(expectedAmountCents, 'expectedAmountCents');
-  const expectedCurrency = requiredText(currency, 'currency');
-
-  if (!response || typeof response !== 'object' ||
-      response.transactionId !== expectedId ||
-      response.clientTransactionId !== expectedClientId ||
-      response.amount !== amount ||
-      response.currency !== expectedCurrency) {
-    return 'pending';
-  }
-  if (response.statusCode === 3 && response.transactionStatus === 'Approved') return 'approved';
-  if (response.statusCode === 2 && response.transactionStatus === 'Canceled') return 'canceled';
-  return 'pending';
-}
-
+export { buildConfirmBody, evaluateMockConfirmation };
 function snapshot(attempt) {
   return {
     renewalRef: attempt.renewalRef,
