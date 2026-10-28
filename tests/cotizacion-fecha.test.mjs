@@ -78,3 +78,15 @@ for (const width of [320, 390, 1366]) {
     });
   });
 }
+
+test("en móvil horizontal el resumen queda a la derecha y el logo permanece visible", async () => {
+  await withPage({ instant: "2026-10-28T17:00:00Z" }, async page => {
+    await page.setViewportSize({ width: 667, height: 375 });
+    const consumo = await page.locator(".main-column").boundingBox();
+    const resumen = await page.locator(".summary-card").boundingBox();
+    assert.ok(resumen.x >= consumo.x + consumo.width);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.evaluate(() => scrollTo(0, 300));
+    assert.equal(Math.round((await page.locator(".site-header").boundingBox()).y), 0);
+  });
+});

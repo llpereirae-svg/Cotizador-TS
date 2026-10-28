@@ -27,3 +27,17 @@
 
 .section-heading { align-items: center; }
 .section-heading h2 { margin: 0; }
+
+.site-header { position: sticky; top: 0; z-index: 50; }
+.customer-preview { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 12px; margin-top: 25px; padding: 12px 15px; background: #f6f9fc; border-radius: 9px; font-size: 13px; color: #607185; }
+.customer-preview strong { color: #38546d; font-size: 12px; font-weight: 600; }
+.checkout-heading { display: flex; align-items: center; gap: 12px; }
+.checkout-heading .icon-tile { width: 36px; height: 36px; }
+.checkout-heading .icon { width: 19px; height: 19px; }
+.plan-note { margin: 16px 0 0; color: var(--muted); font-size: 12px; }
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) and (max-width: 760px) {
+  .header-inner { min-height: 56px; }
+  .layout { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 14px; }
+  .main-column .card-body, .summary-card .card-body { padding: 18px; }
+  .stepper { grid-template-columns: 38px minmax(45px, 1fr) 38px; max-width: 100%; }
+}
