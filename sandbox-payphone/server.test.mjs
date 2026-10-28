@@ -203,7 +203,7 @@ test('al volver del botón permite editar sin liberar la orden ni permitir otro 
     page.once('dialog', dialog => dialog.accept());
     const closed = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/cerrar-sin-pago'));
     const navigation = page.waitForEvent('load');
-    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await page.getByRole('button', { name: 'Cancelar transacción', exact: true }).click();
     assert.equal((await closed).status(), 200);
     await navigation;
     const next = await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()));
