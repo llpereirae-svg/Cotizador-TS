@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Cotizador de prepago | TributaSoft</title>
+  <link rel="icon" href="./assets/tributasoft-logo.png">
+  <link rel="stylesheet" href="./assets/base.css">
+  <style>
+    .preview-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 780px; }
+    .preview-choice { display: block; padding: 26px; color: var(--text); text-decoration: none; transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .preview-choice:hover { border-color: #a6b8ce; box-shadow: 0 12px 32px rgba(25, 47, 78, .09); }
+    .preview-choice h2 { margin-bottom: 6px; }
+    .preview-choice p { margin: 0; color: var(--muted); }
+    .preview-choice strong { display: inline-block; margin-top: 20px; color: var(--navy); }
+    @media (max-width: 600px) { .preview-choices { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { .preview-choice { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand" aria-label="TributaSoft">
+        <img src="./assets/tributasoft-logo.png" alt="">
+        <span class="brand-word" aria-hidden="true"><span class="brand-tributa">Tributa</span><span class="brand-soft">Soft</span></span>
+      </div>
+      <span class="preview-mark">Vista previa · Sin cobros</span>
+    </div>
+  </header>
+  <main class="page">
+    <div class="page-intro">
+      <h1>Cotizador de prepago</h1>
+      <p class="intro-copy">Elige la pantalla que deseas revisar.</p>
+    </div>
+    <nav class="preview-choices" aria-label="Pantallas de vista previa">
+      <a class="card preview-choice" href="./cotizacion.html"><h2>Cotización</h2><p>Consulta el valor estimado del plan.</p><strong>Ver cotización →</strong></a>
+      <a class="card preview-choice" href="./renovacion.html"><h2>Renovación</h2><p>Revisa los métodos de pago.</p><strong>Ver renovación →</strong></a>
+    </nav>
+    <p class="basis-note">Esta vista es solo para revisión. No realices pagos ni envíes información real.</p>
+  </main>
+</body>
+</html>
