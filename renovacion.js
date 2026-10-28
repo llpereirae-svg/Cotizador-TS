@@ -235,7 +235,7 @@ document.querySelector("#resend-code").addEventListener("click", async event => 
   codeInput.value = "";
   try {
     await demoRenewalAdapter.requestEmailCode();
-    if (revision === receiptRevision) codeMessage.textContent = "Reenvío simulado: no se ha enviado ningún correo.";
+    if (revision === receiptRevision) codeMessage.textContent = "El reenvío de código aún no está disponible.";
   } catch {
     if (revision === receiptRevision) codeMessage.textContent = "No se pudo solicitar otro código. Intenta nuevamente.";
   } finally {
@@ -277,12 +277,12 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
   if (revision !== operationRevision) return;
   codeVerified = result.valid;
   verificationReference = result.verificacionReferencia;
-  if (!result.valid) { codeMessage.textContent = "El código de prueba no coincide."; return; }
+  if (!result.valid) { codeMessage.textContent = "El código no coincide."; return; }
   if (pendingSubmission) {
     await demoRenewalAdapter.submitRenewal({ ...pendingSubmission, verificacionCorreoReferencia: verificationReference });
     if (revision !== operationRevision || cardPending) return;
     pendingSubmission = null;
-    transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
+    transferMessage.textContent = "El envío del comprobante aún no está disponible.";
     transferMessage.dataset.kind = "complete";
   }
   await demoRenewalAdapter.finish(codeInput.value.trim());
@@ -300,7 +300,7 @@ codeInput.addEventListener("input", () => {
   if (codeVerified) {
     codeVerified = false;
     verificationReference = null;
-    codeMessage.textContent = "Vuelve a verificar el código de prueba.";
+    codeMessage.textContent = "Vuelve a verificar el código.";
   }
 });
 
@@ -383,7 +383,7 @@ document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   renewalButton.removeAttribute("aria-describedby");
   transferMessage.textContent = "";
   delete transferMessage.dataset.kind;
-  cardResolutionMessage.textContent = "Estado de prueba: cancelación confirmada. Puedes elegir otro método.";
+  cardResolutionMessage.textContent = "Puedes elegir otro método de pago.";
   cardResolutionMessage.hidden = false;
 });
 
