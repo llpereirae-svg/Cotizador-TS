@@ -214,7 +214,7 @@ for (const [now, expected, year] of [
   test("la fecha de renovación es estimada y respeta el calendario para " + now.slice(0, 10), async () => {
     await withPage(async page => {
       assert.equal(await page.locator("#estimated-expiry").getAttribute("datetime"), expected);
-      assert.match(await page.locator(".summary-caption").innerText(), /Vencimiento estimado/);
+      assert.match(await page.locator(".summary-caption").innerText(), /Vencimiento:/);
       assert.equal(await page.locator("#copyright-year").innerText(), year);
     }, { now });
   });
