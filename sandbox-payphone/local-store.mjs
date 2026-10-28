@@ -76,7 +76,7 @@ export function createLocalAttemptStore({ filename } = {}) {
     WHERE client_tx_id = ? AND renewal_ref = ? AND status = 'reserved'`);
   const finish = db.prepare(`UPDATE sandbox_attempts SET status = ?
     WHERE client_tx_id = ? AND renewal_ref = ? AND provider_id = ? AND status = 'confirming'`);
-  const findActive = db.prepare(`SELECT status, monthly FROM sandbox_attempts WHERE renewal_ref = ? AND status != 'canceled' AND finalized = 0`);
+  const findActive = db.prepare(`SELECT status, monthly, payment_kind AS paymentKind FROM sandbox_attempts WHERE renewal_ref = ? AND status != 'canceled' AND finalized = 0`);
 
   return Object.freeze({
     session(candidate) {

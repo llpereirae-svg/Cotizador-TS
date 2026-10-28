@@ -164,9 +164,40 @@ test('botón de redirección prepara una sola orden y no declara cancelación al
     assert.equal(created.status, 200);
     assert.equal(requestBody.amount, 3450);
     assert.equal((await send(port, '/sandbox-payphone/boton/preparar', { method: 'POST', headers })).status, 409);
-    assert.equal((await send(port, '/cancelacion-payphone.html', { headers: { cookie } })).status, 200);
+    const back = await send(port, `/cancelacion-payphone.html?orden=${requestBody.clientTransactionId}`, { headers: { cookie } });
+    assert.equal(back.status, 303);
+    assert.equal(back.headers.location, '/renovacion.html?regreso=boton');
     assert.equal(JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie } })).body).active.status, 'reserved');
   } finally { app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
+test('al volver del botón permite editar sin liberar la orden ni permitir otro pago', async () => {
+  let prepared;
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:',
+    fetchImpl: async (_url, request) => { prepared = JSON.parse(request.body); return { ok: true, json: async () => ({ payWithCard: 'https://pay.payphonetodoesposible.com/Anonymous/Index?paymentId=demo' }) }; } });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto(`http://localhost:${port}/sandbox-payphone/boton`);
+    await page.evaluate(() => fetch('/sandbox-payphone/boton/preparar', { method: 'POST', headers: { 'X-Local-Sandbox': '1' } }));
+    await page.goto(`http://localhost:${port}/cancelacion-payphone.html?orden=${prepared.clientTransactionId}`);
+    await page.waitForFunction(() => !document.querySelector('[data-monthly]').disabled);
+    assert.equal(await page.locator('#payment-card').isVisible(), false);
+    await page.locator('[data-monthly]').fill('12');
+    await page.locator('#confirm-plan').click();
+    await page.locator('[data-method="banco"]').click();
+    assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
+    assert.equal(await page.locator('#transfer-pending').isVisible(), true);
+    await page.locator('[data-method="tarjeta"]').click();
+    assert.equal(await page.locator('#card-terms').isDisabled(), true);
+    const active = await page.evaluate(() => fetch('/sandbox-payphone/estado').then(r => r.json()));
+    assert.equal(active.active.status, 'reserved');
+    assert.equal(active.active.paymentKind, 'button');
+    await context.close();
+  } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
 });
 
 test('el retorno del botón usa la confirmación del botón, no la de la Cajita', async () => {

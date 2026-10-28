@@ -43,6 +43,14 @@ try {
     status.textContent = active.status === 'approved'
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
+    if (new URLSearchParams(location.search).get('regreso') === 'boton' && active.paymentKind === 'button' && active.status === 'reserved') {
+      document.querySelector('#pending-message strong').textContent = 'Verificación de pago pendiente';
+      document.querySelector('#pending-message p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
+      document.querySelector('#transfer-pending strong').textContent = 'Verificación de pago pendiente';
+      document.querySelector('#transfer-pending p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
+      document.dispatchEvent(new CustomEvent('sandbox-allow-pending-edit'));
+      history.replaceState(null, '', location.pathname);
+    }
     if (active.status === 'approved') {
       demoRenewalAdapter.finish = async code => {
         const response = await fetch('/sandbox-payphone/finalizar', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });

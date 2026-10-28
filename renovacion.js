@@ -79,6 +79,7 @@ const pendingMessage = document.querySelector("#pending-message");
 let codeVerified = false;
 let verificationReference = null;
 let cardPending = false;
+let allowPendingPlanEdit = false;
 let selectedMethod = "banco";
 let operationRevision = 0;
 let receiptRevision = 0;
@@ -101,7 +102,7 @@ confirmPlan.addEventListener("click", () => {
 });
 
 editPlan.addEventListener("click", () => {
-  if (cardPending || codeRequestInFlight || verificationInFlight) return;
+  if ((cardPending && !allowPendingPlanEdit) || codeRequestInFlight || verificationInFlight) return;
   document.dispatchEvent(new CustomEvent("sandbox-plan-edit"));
   document.querySelector("#payphone-container").hidden = true;
   noteOperationChange();
@@ -363,8 +364,16 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
   cardResolutionMessage.hidden = true;
 });
 
+document.addEventListener("sandbox-allow-pending-edit", () => {
+  if (!cardPending) return;
+  allowPendingPlanEdit = true;
+  editPlan.disabled = false;
+  editPlan.click();
+});
+
 document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardPending = false;
+  allowPendingPlanEdit = false;
   editPlan.disabled = false;
   cardActions.hidden = false;
   bankSummary.removeAttribute("aria-disabled");

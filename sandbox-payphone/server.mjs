@@ -96,7 +96,10 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       } catch { logEvent('boton_preparacion_no_confirmada'); return html(res, 502, 'Preparación incierta; verifica antes de reintentar.'); }
     }
     if (req.method === 'GET' && url.pathname === '/cancelacion-payphone.html') {
-      return html(res, 200, 'Regresaste desde la página de PayPhone. La cancelación aún no ha sido verificada; no inicies otro pago.');
+      const orderId = url.searchParams.get('orden');
+      const order = orderId && /^local-[0-9a-f-]{36}$/.test(orderId) ? store.get(orderId) : null;
+      if (!order || order.paymentKind !== 'button') return html(res, 400, 'No se pudo identificar la orden.');
+      res.writeHead(303, { Location: '/renovacion.html?regreso=boton' }); return res.end();
     }
     if (req.method === 'GET' && url.pathname === '/sandbox-payphone/test-page.js') {
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' }); return res.end(browser);
