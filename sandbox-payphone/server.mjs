@@ -91,8 +91,10 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       res.writeHead(200, { 'Content-Type': type }); return res.end(readFileSync(new URL(file, import.meta.url)));
     }
     if (req.method === 'GET' && url.pathname === '/sandbox-payphone/estado') {
+      const canceledId = url.searchParams.get('cancelada');
+      const canceledOrder = canceledId && /^local-[0-9a-f-]{36}$/.test(canceledId) ? store.get(canceledId) : null;
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ active: store.active('demo-unica') }));
+      return res.end(JSON.stringify({ active: store.active('demo-unica'), canceled: canceledOrder?.status === 'canceled' }));
     }
     if (req.method === 'POST' && url.pathname === '/sandbox-payphone/reservar') {
       if (![origin, ...(tunnelOrigin ? [tunnelOrigin] : [])].includes(req.headers.origin) || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
@@ -131,6 +133,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       }
       const result = await client.confirm({ id, clientTransactionId, order });
       if (result.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html' }); return res.end(); }
+      if (result.status === 'canceled') { res.writeHead(303, { Location: '/renovacion.html?cancelada=' + encodeURIComponent(clientTransactionId) }); return res.end(); }
       return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(result.status)}. Si está pendiente, verifica el resultado con PayPhone antes de reintentar.`);
     }
     return html(res, 404, 'Página no encontrada.');

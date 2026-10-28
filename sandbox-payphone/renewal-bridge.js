@@ -26,9 +26,11 @@ function protectOperation(monthly, paymentState) {
   terms.disabled = true;
 }
 try {
-  const response = await fetch('/sandbox-payphone/estado');
+  const canceledId = new URLSearchParams(location.search).get('cancelada');
+  const stateUrl = canceledId ? '/sandbox-payphone/estado?cancelada=' + encodeURIComponent(canceledId) : '/sandbox-payphone/estado';
+  const response = await fetch(stateUrl);
   if (!response.ok) throw new Error();
-  const { active } = await response.json();
+  const { active, canceled } = await response.json();
   if (active) {
     protectOperation(active.monthly, active.status);
     status.textContent = active.status === 'approved'
@@ -37,6 +39,14 @@ try {
     if (active.status === 'approved') document.dispatchEvent(new CustomEvent('sandbox-payment-approved'));
   } else {
     ready = true;
+    if (canceled) {
+      const message = document.querySelector('#card-resolution-message');
+      message.textContent = 'Transacción cancelada. Puedes intentar de nuevo o elegir otro método de pago.';
+      message.hidden = false;
+      document.querySelector('[data-method="tarjeta"]').click();
+      document.querySelector('.payment-options').scrollIntoView({ block: 'center' });
+      history.replaceState(null, '', location.pathname);
+    }
     if (wantsCard) void prepareCajita();
   }
 } catch {

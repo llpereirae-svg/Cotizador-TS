@@ -82,6 +82,32 @@ test('reserva local, retorno validado y confirmación con proveedor simulado', a
   }
 });
 
+test('cancelación confirmada vuelve a las opciones sin inventar el estado', async () => {
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:',
+    fetchImpl: async (_url, request) => { const input = JSON.parse(request.body); return { status: 200, text: async () => JSON.stringify({ transactionId: input.id, clientTransactionId: input.clientTxId, amount: 966, currency: 'USD', statusCode: 2, transactionStatus: 'Canceled' }) }; } });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await send(port, '/renovacion.html'); const cookie = page.headers['set-cookie'][0].split(';')[0];
+    const headers = { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
+    const reserved = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers, body: JSON.stringify({ monthly: 1, termsAccepted: true }) });
+    const id = JSON.parse(reserved.body).clientTransactionId;
+    const result = await send(port, `/respuesta-payphone.html?id=42&clientTransactionId=${id}`, { headers: { cookie } });
+    assert.equal(result.status, 303); assert.match(result.headers.location, /cancelada=/);
+    const state = JSON.parse((await send(port, `/sandbox-payphone/estado?cancelada=${id}`, { headers: { cookie } })).body);
+    assert.equal(state.canceled, true); assert.equal(state.active, null);
+    const unknown = JSON.parse((await send(port, '/sandbox-payphone/estado?cancelada=local-00000000-0000-0000-0000-000000000000', { headers: { cookie } })).body);
+    assert.equal(unknown.canceled, false);
+    const ui = await browser.newPage({ viewport: { width: 375, height: 812 } });
+    await ui.goto(`http://localhost:${port}${result.headers.location}`);
+    await ui.locator('#card-resolution-message').waitFor({ state: 'visible' });
+    assert.match(await ui.locator('#card-resolution-message').innerText(), /Transacción cancelada/);
+    assert.equal(await ui.locator('[data-method=banco]').isVisible(), true);
+    assert.equal(await ui.locator('#card-terms').isDisabled(), false);
+  } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
 test('el navegador prepara la Cajita con SDK simulado sin contactar a PayPhone', async () => {
   const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake',
     dbPath: ':memory:', fetchImpl: async () => { throw new Error('Red prohibida'); } });

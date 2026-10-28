@@ -49,6 +49,10 @@ temporizador de la página mientras se ingresan datos. El límite de un minuto s
 aplica a la confirmación desde el servidor, no al llenado de la Cajita; no se
 ha verificado que el SDK exponga el momento de envío del pago. El proveedor documenta reversión automática si una
 transacción no se confirma en cinco minutos, pero el estado debe comprobarse.
+PayPhone documenta que cada formulario de la Cajita tiene una vigencia de diez
+minutos desde su carga: https://docs.payphone.app/cajita-de-pagos. En caso de
+confirmación aprobada, el aviso de correo sigue siendo simulado; una cancelación
+confirmada devuelve al selector de métodos. Un tiempo de espera no prueba cancelación.
 No borres ni restablezcas una orden pendiente para reintentar sin verificarla.
 Si la Cajita no llega a abrir por un error de configuración, cierra la pestaña y
 detén el servidor con Ctrl+C. Puedes revisar el identificador del intento con:
