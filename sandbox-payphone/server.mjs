@@ -193,7 +193,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       if (!order) return html(res, 404, 'Orden no encontrada; no se confirmó ningún pago.');
       if (order.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html?pago=aprobado' }); return res.end(); }
       if (order.status !== 'reserved') {
-        return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(order.status)}. No reintentes si sigue pendiente.`);
+        return html(res, 200, `Estado de la operación: ${escapeHtml(order.status)}. No reintentes si sigue pendiente.`);
       }
       logEvent('confirmacion_iniciada');
       const result = await (order.paymentKind === 'button' ? buttonClient : client).confirm({ id, clientTransactionId, order });
@@ -201,7 +201,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       logEvent(result.status === 'approved' ? 'confirmacion_aprobada' : result.status === 'canceled' ? 'confirmacion_cancelada' : `confirmacion_pendiente_${pendingReasons.has(result.reason) ? result.reason : 'desconocida'}`);
       if (result.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html?pago=aprobado' }); return res.end(); }
       if (result.status === 'canceled') { res.writeHead(303, { Location: '/renovacion.html?cancelada=' + encodeURIComponent(clientTransactionId) }); return res.end(); }
-      return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(result.status)}. Si está pendiente, verifica el resultado con PayPhone antes de reintentar.`);
+      return html(res, 200, `Estado de la operación: ${escapeHtml(result.status)}. Si está pendiente, verifica el resultado con PayPhone antes de reintentar.`);
     }
     return html(res, 404, 'Página no encontrada.');
   });

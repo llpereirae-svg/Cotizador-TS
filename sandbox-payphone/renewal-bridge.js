@@ -23,7 +23,7 @@ function offerTestCancellation() {
   button.className = 'button-secondary action-button';
   button.textContent = 'Cancelar transacción';
   button.addEventListener('click', async () => {
-    if (!window.confirm('Solo para esta prueba: cierra la página de PayPhone. ¿Confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
+    if (!window.confirm('Cierra la página de PayPhone. ¿Confirmas que no ingresaste datos de tarjeta ni pulsaste Pagar?')) return;
     button.disabled = true;
     try {
       const result = await fetch('/sandbox-payphone/cerrar-sin-pago', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ noCardDataOrPayment: true }) });
@@ -50,12 +50,12 @@ function protectOperation(monthly, paymentState) {
   }
   document.querySelector('#simulate-pending').click();
   if (paymentState === 'approved') {
-    document.querySelector('#pending-message strong').textContent = 'Operación de prueba aprobada';
-    document.querySelector('#pending-message p').textContent = 'Esta orden ficticia ya se completó y permanece bloqueada para evitar duplicados.';
+    document.querySelector('#pending-message strong').textContent = 'Pago aprobado';
+    document.querySelector('#pending-message p').textContent = 'Esta orden ya se completó. Continúa con la verificación.';
     document.querySelector('#transfer-pending strong').textContent = 'Pago con tarjeta aprobado';
     document.querySelector('#transfer-pending p').textContent = 'La operación ya fue aprobada. Continúa su verificación para evitar un pago duplicado.';
   } else {
-    document.querySelector('#pending-message p').textContent = 'Hay una operación de prueba activa. Confirma su estado antes de intentar otro método.';
+    document.querySelector('#pending-message p').textContent = 'Hay una operación activa. Confirma su estado antes de intentar otro método.';
     document.querySelector('#pending-message').hidden = true;
   }
   for (const selector of ['[data-monthly]', '[data-increase]', '[data-decrease]']) document.querySelector(selector).disabled = true;
@@ -70,8 +70,8 @@ try {
   if (active) {
     protectOperation(active.monthly, active.status);
     status.textContent = active.status === 'approved'
-      ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
-      : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
+      ? 'La orden fue aprobada. Continúa con la verificación.'
+      : 'Ya existe una operación activa. Confirma su estado antes de reintentar.';
     if (['button', 'cajita'].includes(active.paymentKind) && active.status === 'reserved') {
       document.querySelector('#pending-message strong').textContent = 'Verificación de pago pendiente';
       document.querySelector('#pending-message p').textContent = 'Puedes modificar la renovación. Verifica el pago anterior antes de continuar.';
@@ -85,7 +85,7 @@ try {
     if (active.status === 'approved') {
       demoRenewalAdapter.finish = async code => {
         const response = await fetch('/sandbox-payphone/finalizar', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-        if (!response.ok) throw new Error('No se pudo finalizar la prueba.');
+        if (!response.ok) throw new Error('No se pudo finalizar la operación.');
         location.assign('https://tbc.tributasoft.ec/Erp-web/templates/registro/login.xhtml');
       };
       const resume = document.createElement('button');
@@ -121,12 +121,12 @@ async function prepareCajita() {
   if (!terms.checked) { status.textContent = ''; return; }
   const monthly = Number(field.value);
   if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 10000) {
-    status.textContent = 'Ingresa entre 1 y 10,000 documentos mensuales para la prueba.';
+    status.textContent = 'Ingresa entre 1 y 10,000 documentos mensuales.';
     return;
   }
   started = true;
   protectOperation(monthly);
-  status.textContent = 'Preparando la operación de prueba…';
+  status.textContent = 'Preparando la operación…';
   try {
     const response = await fetch('/sandbox-payphone/reservar', { method: 'POST',
       headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ monthly, termsAccepted: true }) });

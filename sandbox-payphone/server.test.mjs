@@ -380,7 +380,7 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.match(await page.locator('#transfer-pending strong').innerText(), /aprobado/);
     await page.locator('[data-method="tarjeta"]').click();
     assert.match(await page.locator('#local-payphone-status').innerText(), /fue aprobada/);
-    assert.match(await page.locator('#pending-message strong').innerText(), /aprobada/);
+    assert.match(await page.locator('#pending-message strong').innerText(), /aprobado/);
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.getByRole('button', { name: 'Continuar verificación' }).click();
     assert.equal(await page.locator('#code-dialog').isVisible(), true);
