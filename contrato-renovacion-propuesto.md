@@ -78,6 +78,10 @@ No hay rutas de API, credenciales, certificados ni números de cuenta definidos 
 
 La interfaz incluye un borrador para revisión, no una versión contractual aprobada. Antes de producción, TributaSoft debe aprobar el texto y el backend debe registrar la aceptación de la versión correspondiente. En transferencia o depósito se pide aceptar antes de continuar; en tarjeta se pide antes de reservar y abrir la Cajita. Las casillas y el booleano del ensayo local no constituyen una aceptación legal persistente ni sustituyen el registro del backend.
 
+El borrador presenta al proveedor y al cliente, el servicio, el precio, la revisión del pago y una cláusula informativa de protección de datos. Antes de publicarlo como contrato deben confirmarse la identificación legal y domicilio del proveedor, la identidad de la cuenta, los cargos, el responsable y canal de privacidad, las finalidades, bases de licitud, destinatarios, conservación y el contenido completo del aviso de privacidad. El equipo jurídico debe aprobar el texto y el mecanismo de registro de aceptación. La casilla contractual no sustituye automáticamente una base de licitud o consentimiento específico cuando corresponda.
+
+Referencias para la revisión: [normativa de protección de datos de la SPDP](https://www.spdp.gob.ec/docs/proteccion-de-datos-personales/general/normativa/), [derechos de los titulares](https://www.spdp.gob.ec/docs/proteccion-de-datos-personales/cuales-son-mis-derechos/) y [bases de tratamiento en la LOPDP](https://www.spdp.gob.ec/docs/consultas-absueltas/2025-2/oficio-n-spdp-ird-2025-0090-o/).
+
 ## Pruebas locales de regresión
 
 Con el servidor local descrito en el README y Playwright con Chromium instalado, ejecuta:

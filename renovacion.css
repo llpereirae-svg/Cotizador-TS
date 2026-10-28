@@ -37,6 +37,7 @@
 .dialog-content p { margin: 0 0 12px; }
 .draft-notice, .payment-notice { padding: 12px; border-radius: 8px; background: #f6f9fc; }
 .dialog-done { width: 100%; margin-top: 8px; }
+.dialog-scroll-hint { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
 .legal-dialog .code-entry { margin: 20px 0; }
 .action-button { width: 100%; }
 .simulation-message { margin: 10px 0 0; color: #536c82; font-size: 13px; }
@@ -75,7 +76,7 @@
 .resolution-button { margin-top: 14px; width: 100%; }
 #transfer-pending { margin-bottom: 18px; }
 
-.bank-details { margin: 18px 0; border: 1px solid #f1c49e; border-radius: 9px; background: #fffaf5; }
+.bank-details { margin: 18px 0; border: 1px solid #f1c49e; border-radius: 9px; background: #fff; }
 .bank-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; color: #a64b00; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
 .bank-details summary::-webkit-details-marker { display: none; }
 .bank-details summary::after { content: "+"; color: #a64b00; font-size: 20px; line-height: 1; font-weight: 400; }
