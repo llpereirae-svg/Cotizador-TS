@@ -46,6 +46,26 @@ async function withPage(run, options = {}) {
 
 const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.from("comprobante de prueba") });
 
+test("el resumen y el contrato usan el mismo JSON sin interpretar HTML", async () => {
+  await withPage(async page => {
+    assert.deepEqual(await page.locator("[data-customer-id]").allTextContents(), ["0999999999001", "0999999999001"]);
+    await page.evaluate(async () => {
+      const source = document.querySelector("#customer-context");
+      const { renderCustomerContext } = await import("./renovacion.js?v=20261028-4");
+      source.textContent = JSON.stringify({ tipoIdentificacion: "Cédula", identificacion: "0000000000", nombre: "<img src=x>", simulado: true });
+      renderCustomerContext();
+    });
+    assert.deepEqual(await page.locator("[data-customer-id]").allTextContents(), ["0000000000", "0000000000"]);
+    assert.equal(await page.locator("[data-customer-name]").textContent(), "<img src=x>");
+    assert.equal(await page.locator("[data-customer-name] img").count(), 0);
+    await page.evaluate(async () => {
+      document.querySelector("#customer-context").textContent = "{}";
+      (await import("./renovacion.js?v=20261028-4")).renderCustomerContext();
+    });
+    assert.deepEqual(await page.locator("[data-customer-id]").allTextContents(), ["—", "—"]);
+  });
+});
+
 test("los términos se leen sin marcar la casilla y la verificación comienza al continuar", async () => {
   await withPage(async page => {
     assert.equal(await page.getByText("Verificación por correo").count(), 0);

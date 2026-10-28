@@ -30,7 +30,7 @@
             <span class="icon-tile" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8.5 12h7M8.5 15.5h7"/></svg></span>
             <div><h2 id="consumo-title">Tu consumo estimado</h2></div>
           </div>
-          <div class="customer-preview"><span>RUC</span><strong>09999999999001</strong></div>
+          <div class="customer-preview"><span data-customer-type>RUC</span><strong data-customer-id>—</strong></div>
           <div class="form-section">
             <label class="field-label" for="monthly">Documentos promedio por mes</label>
             <div class="stepper">
@@ -100,7 +100,7 @@
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">Formatos admitidos: JPG, JPEG, PNG o PDF.<br>Tamaño máximo: 500 KB.</p></div>
             </div>
             <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
-            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos, condiciones y protección de datos</button> (borrador).</span></div>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
             <p class="demo-disclosure">Demostración: no envía comprobantes ni procesa pagos.</p>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
@@ -108,7 +108,7 @@
           </div>
           <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
-            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos, condiciones y protección de datos</button> (borrador).</span></div>
             <div class="card-placeholder" id="payphone-container">
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
               <div><strong>Pago con tarjeta no disponible</strong><p>Este método estará disponible más adelante.</p></div>
@@ -127,13 +127,14 @@
   </main>
   <dialog id="terms-dialog" class="legal-dialog" aria-labelledby="terms-title">
     <div class="dialog-head"><h2 id="terms-title">Contrato de servicio prepago</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar términos">×</button></div>
-    <div class="dialog-content"><p class="draft-notice">Borrador para revisión. La identificación legal de la empresa, el canal de privacidad y las condiciones definitivas deben ser confirmados por TributaSoft.</p>
-      <h3>1. Partes</h3><p>Este contrato se celebra entre TributaSoft S.A., en adelante «el proveedor», y la persona natural o jurídica titular de la cuenta que solicita la renovación, en adelante «el cliente». La identificación del cliente deberá ser verificada por el sistema antes de contratar.</p>
-      <h3>2. Objeto y vigencia</h3><p>El proveedor prestará el servicio de facturación electrónica prepago por un año. La cantidad de documentos, el importe y el vencimiento serán los confirmados para la operación antes del pago.</p>
-      <h3>3. Precio y forma de pago</h3><p>El cliente podrá pagar mediante transferencia, depósito o tarjeta, según los métodos habilitados. El importe y los impuestos aplicables se mostrarán antes de confirmar la operación. Para transferencia o depósito deberá proporcionar el comprobante correspondiente.</p>
-      <h3>4. Revisión del pago</h3><p>El proveedor revisará la información del pago. Si no coincide, el servicio podría suspenderse y aplicarse un cargo administrativo de $10 más IVA, sujeto a la aprobación de las condiciones definitivas.</p>
-      <h3>5. Protección de datos personales</h3><p>Para gestionar la cuenta, el pago y la prestación del servicio podrán tratarse datos de identificación, contacto y operación, conforme a la Ley Orgánica de Protección de Datos Personales y su normativa aplicable. En pagos con tarjeta podrá intervenir PayPhone como proveedor de pago.</p><p>El cliente podrá ejercer los derechos que le correspondan ante el responsable del tratamiento. Antes de usar este contrato deberán confirmarse la identidad y el canal de contacto del responsable, las finalidades, bases aplicables, destinatarios y plazos de conservación, y ponerse a disposición la información de privacidad completa.</p>
-      <h3>6. Aceptación y activación</h3><p>La aceptación y activación serán registradas por el sistema una vez integrado con el backend. Este borrador no constituye la versión contractual final ni acredita una aceptación real.</p>
+    <div class="dialog-content"><p class="draft-notice">Borrador para revisión jurídica. La identidad societaria, el canal de privacidad y las condiciones pendientes deben ser verificadas por TributaSoft antes de su uso contractual.</p>
+      <h3>1. Partes</h3><p>Comparecen TributaSoft S.A., con RUC 0992703601001, persona jurídica constituida en Ecuador y sujeta al control de la Superintendencia de Compañías, Valores y Seguros, en adelante «el proveedor»; y <strong data-customer-name>cliente por identificar</strong>, con <span data-customer-type>identificación</span> <strong data-customer-id>—</strong>, en adelante «el cliente». Los datos societarios y la representación de las partes deberán verificarse antes de la contratación.</p>
+      <h3>2. Objeto</h3><p>El proveedor facilitará al cliente un servicio de facturación electrónica prepago para la emisión y gestión de comprobantes electrónicos aplicables ante el Servicio de Rentas Internas (SRI), así como la generación de reportes a partir de dichos comprobantes.</p>
+      <h3>3. Vigencia y documentos</h3><p>El plan tendrá una vigencia de un año. La cantidad de documentos contratados y la fecha de vencimiento serán las informadas al cliente y confirmadas para la operación.</p>
+      <h3>4. Precio y medios de pago</h3><p>El precio del plan y los impuestos aplicables se mostrarán al cliente antes de confirmar el pago. Los medios habilitados podrán incluir transferencia bancaria, depósito bancario y tarjeta de crédito o débito. Para transferencia o depósito, el cliente proporcionará el comprobante de pago.</p>
+      <h3>5. Revisión y suspensión</h3><p>El proveedor verificará la información del pago en un plazo de dos horas hábiles. Si se detecta que un pago es indebido o fraudulento, el proveedor podrá suspender el servicio, sin perjuicio de los derechos del cliente y de la normativa aplicable. La eventual aplicación de un cargo administrativo de $10 más IVA deberá constar en las condiciones definitivas aprobadas.</p>
+      <h3>6. Pago con tarjeta y protección de datos</h3><p>Los datos de tarjeta se ingresarán en la Cajita de PayPhone para su procesamiento. TributaSoft no solicitará ni almacenará números completos de tarjeta fuera de dicha interfaz y recibirá la información necesaria sobre la operación. La distribución técnica de los datos y las condiciones de almacenamiento deberán confirmarse con PayPhone antes de habilitar el servicio.</p><p>El proveedor tratará los datos personales necesarios para identificar al cliente, administrar la cuenta, gestionar el pago y prestar el servicio, conforme a la Ley Orgánica de Protección de Datos Personales y su normativa aplicable. El cliente podrá ejercer sus derechos de acceso, rectificación, eliminación, oposición y los demás que correspondan. El canal de atención de derechos, las bases de licitud, los destinatarios y los plazos de conservación deberán constar en la política de privacidad aprobada.</p><p>La participación de PayPhone no excluye las obligaciones legales que correspondan a cada entidad por el tratamiento de datos bajo su responsabilidad.</p>
+      <h3>7. Contratación electrónica y controversias</h3><p>La aceptación de este contrato se realizará por los medios electrónicos acordados y conforme a la normativa aplicable. Si se requiere una firma electrónica, se utilizará el mecanismo que corresponda. Las controversias se someterán a las autoridades competentes conforme a la ley, sin perjuicio de los derechos del cliente.</p>
     </div>
     <p class="dialog-scroll-hint">Desliza para leer el contrato completo.</p>
     <button type="button" class="button-primary dialog-done" data-close-dialog>Entendido</button>
@@ -142,9 +143,10 @@
     <div class="dialog-head"><h2 id="code-title">Confirma tu correo</h2><button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar verificación">×</button></div>
     <div class="dialog-content"><p>Ingresa el código enviado al correo asociado a tu cuenta para continuar.</p><p class="draft-notice">Demostración: no se ha enviado ningún correo. Usa el código de ejemplo.</p>
       <div class="code-entry" id="code-entry" hidden><label class="field-label" for="email-code">Código de ejemplo: 123456</label><div class="code-row"><input class="field-control" id="email-code" inputmode="numeric" maxlength="6" autocomplete="off"><button class="button-secondary" type="button" id="verify-code">Verificar</button></div><p id="code-message" class="field-hint" role="status" aria-live="polite"></p></div>
-      <p class="payment-notice">El pago será revisado. Si no coincide, el servicio podría suspenderse y aplicarse un cargo administrativo de $10 más IVA, sujeto a las condiciones definitivas.</p>
+      <p class="payment-notice">El pago será revisado en dos horas hábiles. Si se detecta un pago indebido o fraudulento, el servicio podrá suspenderse, sujeto a las condiciones definitivas.</p>
     </div>
   </dialog>
-  <script type="module" src="./renovacion.js?v=20261028-3"></script>
+  <script id="customer-context" type="application/json">{"tipoIdentificacion":"RUC","identificacion":"0999999999001","nombre":"Cliente de ejemplo","simulado":true}</script>
+  <script type="module" src="./renovacion.js?v=20261028-4"></script>
 </body>
 </html>

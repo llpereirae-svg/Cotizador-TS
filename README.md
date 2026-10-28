@@ -18,6 +18,8 @@ La entrada pública muestra el cotizador. En la versión integrada, la opción d
 
 Para revisar sin conexión al ERP hay dos vistas independientes. La pantalla de renovación usa un RUC ficticio y no valida ni consulta cuentas reales. El flujo observado en el sistema anterior está documentado como referencia en `contrato-renovacion-propuesto.md`; no constituye una API nueva ni un contrato definitivo.
 
+El resumen y el borrador del contrato muestran los mismos datos de un JSON ficticio. El backend real debe suministrar el nombre y la cédula o RUC de la cuenta autenticada y comprobar la identidad y la autorización; el dato mostrado en el navegador no valida por sí mismo a la persona.
+
 Para instalar las herramientas de prueba y verificar el cálculo:
 
 ```powershell
