@@ -77,7 +77,9 @@
 .file-input:focus-visible + .file-picker { outline: 3px solid #f9ae72; outline-offset: 3px; }
 
 .resolution-button { margin-top: 14px; width: 100%; }
-#transfer-pending { margin-bottom: 18px; }
+#transfer-pending { margin-bottom: 18px; background: transparent; border-color: #f1c49e; color: var(--text); }
+#transfer-pending strong { color: #a64b00; font-size: 13px; font-weight: 700; }
+#transfer-pending p { color: var(--text); }
 
 .bank-details { margin: 18px 0; border: 1px solid #f1c49e; border-radius: 9px; background: #fff; }
 .bank-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; color: #a64b00; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
