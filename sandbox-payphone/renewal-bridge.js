@@ -1,3 +1,5 @@
+import { demoRenewalAdapter } from '../renovacion-mock.js?v=20261028-2';
+
 const status = document.querySelector('#local-payphone-status');
 const field = document.querySelector('[data-monthly]');
 const terms = document.querySelector('#card-terms');
@@ -39,6 +41,11 @@ try {
       ? 'La orden de prueba fue aprobada y permanece bloqueada para evitar duplicados.'
       : 'Ya existe una operación de prueba. Confirma su estado antes de reintentar.';
     if (active.status === 'approved') {
+      demoRenewalAdapter.finish = async code => {
+        const response = await fetch('/sandbox-payphone/finalizar', { method: 'POST', headers: { 'X-Local-Sandbox': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+        if (!response.ok) throw new Error('No se pudo finalizar la prueba.');
+        location.assign('https://tbc.tributasoft.ec/Erp-web/templates/registro/login.xhtml');
+      };
       const resume = document.createElement('button');
       resume.type = 'button';
       resume.className = 'button-secondary action-button';
@@ -53,6 +60,7 @@ try {
   } else {
     ready = true;
     if (canceled) {
+      document.querySelector('#confirm-plan').click();
       const message = document.querySelector('#card-resolution-message');
       message.textContent = 'Transacción cancelada. Puedes intentar de nuevo o elegir otro método de pago.';
       message.hidden = false;

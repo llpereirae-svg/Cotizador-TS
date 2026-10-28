@@ -10,6 +10,21 @@ import { createPayphoneTestConfirmation } from '../integrations/payphone/confirm
 const order = { renewalRef: 'demo-renewal', clientTransactionId: 'demo-order', amountCents: 3450, currency: 'USD', monthly: 10 };
 const attempt = { renewalRef: order.renewalRef, clientTransactionId: order.clientTransactionId, providerTransactionId: 42 };
 
+test('solo una aprobación finalizada permite otra renovación sin borrar el historial', () => {
+  const store = createLocalAttemptStore({ filename: ':memory:' });
+  try {
+    assert.equal(store.reserve(order), true);
+    assert.equal(store.finalizeApproved(order.renewalRef), false);
+    assert.equal(store.claim(attempt), true);
+    assert.equal(store.record({ ...attempt, status: 'approved' }), true);
+    assert.equal(store.reserve({ ...order, clientTransactionId: 'next-order' }), false);
+    assert.equal(store.finalizeApproved(order.renewalRef), true);
+    assert.equal(store.finalizeApproved(order.renewalRef), false);
+    assert.equal(store.get(order.clientTransactionId).status, 'approved');
+    assert.equal(store.reserve({ ...order, clientTransactionId: 'next-order' }), true);
+  } finally { store.close(); }
+});
+
 test('reserva única se conserva tras reinicio y bloquea otra instancia', () => {
   const dir = mkdtempSync(join(tmpdir(), 'pp-store-'));
   const filename = join(dir, 'test.sqlite');

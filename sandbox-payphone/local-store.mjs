@@ -20,10 +20,9 @@ export function createLocalAttemptStore({ filename } = {}) {
       monthly INTEGER NOT NULL CHECK (monthly > 0),
       currency TEXT NOT NULL,
       provider_id INTEGER,
-      status TEXT NOT NULL CHECK (status IN ('reserved','confirming','pending','approved','canceled'))
+      status TEXT NOT NULL CHECK (status IN ('reserved','confirming','pending','approved','canceled')),
+      finalized INTEGER NOT NULL DEFAULT 0 CHECK (finalized IN (0, 1))
     );
-    CREATE UNIQUE INDEX IF NOT EXISTS sandbox_one_active_per_renewal
-      ON sandbox_attempts(renewal_ref) WHERE status != 'canceled';
     CREATE TABLE IF NOT EXISTS sandbox_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS sandbox_manual_resolutions (
       client_tx_id TEXT PRIMARY KEY REFERENCES sandbox_attempts(client_tx_id),
@@ -35,6 +34,11 @@ export function createLocalAttemptStore({ filename } = {}) {
   // Migrar dentro de una transacción conserva todas las declaraciones previas.
   db.exec('BEGIN IMMEDIATE');
   try {
+    const columns = db.prepare('PRAGMA table_info(sandbox_attempts)').all();
+    if (!columns.some(column => column.name === 'finalized')) {
+      db.exec('ALTER TABLE sandbox_attempts ADD COLUMN finalized INTEGER NOT NULL DEFAULT 0 CHECK (finalized IN (0, 1))');
+    }
+    db.exec("DROP INDEX IF EXISTS sandbox_one_active_per_renewal; CREATE UNIQUE INDEX sandbox_one_active_per_renewal ON sandbox_attempts(renewal_ref) WHERE status != 'canceled' AND finalized = 0");
     const schema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sandbox_manual_resolutions'").get()?.sql;
     if (!schema) throw new Error('No se encontró el historial de declaraciones.');
     if (!schema.includes("'not_submitted'")) {
@@ -69,7 +73,7 @@ export function createLocalAttemptStore({ filename } = {}) {
     WHERE client_tx_id = ? AND renewal_ref = ? AND status = 'reserved'`);
   const finish = db.prepare(`UPDATE sandbox_attempts SET status = ?
     WHERE client_tx_id = ? AND renewal_ref = ? AND provider_id = ? AND status = 'confirming'`);
-  const findActive = db.prepare(`SELECT status, monthly FROM sandbox_attempts WHERE renewal_ref = ? AND status != 'canceled'`);
+  const findActive = db.prepare(`SELECT status, monthly FROM sandbox_attempts WHERE renewal_ref = ? AND status != 'canceled' AND finalized = 0`);
 
   return Object.freeze({
     session(candidate) {
@@ -80,6 +84,9 @@ export function createLocalAttemptStore({ filename } = {}) {
     active(renewalRef) {
       const result = findActive.get(requiredText(renewalRef, 'renewalRef'));
       return result ? { ...result } : null;
+    },
+    finalizeApproved(renewalRef) {
+      return db.prepare("UPDATE sandbox_attempts SET finalized = 1 WHERE renewal_ref = ? AND status = 'approved' AND finalized = 0").run(requiredText(renewalRef, 'renewalRef')).changes === 1;
     },
     /** Reservar antes de mostrar la Cajita; no reutilizar una orden activa. */
     reserve(order) {
@@ -105,7 +112,7 @@ export function createLocalAttemptStore({ filename } = {}) {
     recoveryCandidate(renewalRef) {
       const row = db.prepare(`SELECT client_tx_id AS clientTransactionId, status,
         provider_id AS providerTransactionId FROM sandbox_attempts
-        WHERE renewal_ref = ? AND status != 'canceled'`).get(requiredText(renewalRef, 'renewalRef'));
+        WHERE renewal_ref = ? AND status != 'canceled' AND finalized = 0`).get(requiredText(renewalRef, 'renewalRef'));
       return row ? { ...row } : null;
     },
     /** Registra una declaración manual, no una confirmación automática del proveedor. */

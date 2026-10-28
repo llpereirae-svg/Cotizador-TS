@@ -119,6 +119,17 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       logEvent('reserva_creada');
       res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(config));
     }
+    if (req.method === 'POST' && url.pathname === '/sandbox-payphone/finalizar') {
+      if (![origin, ...(tunnelOrigin ? [tunnelOrigin] : [])].includes(req.headers.origin) || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
+      let body = '';
+      for await (const chunk of req) { body += chunk; if (body.length > 128) return html(res, 413, 'Solicitud demasiado grande.'); }
+      let code;
+      try { ({ code } = JSON.parse(body)); } catch { return html(res, 400, 'Código inválido.'); }
+      if (code !== '123456') return html(res, 400, 'Código inválido.');
+      if (!store.finalizeApproved('demo-unica')) return html(res, 409, 'No hay un pago aprobado pendiente de finalizar.');
+      logEvent('prueba_aprobada_finalizada');
+      res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ status: 'simulado' }));
+    }
     if (req.method === 'GET' && url.pathname === '/respuesta-payphone.html') {
       if (url.searchParams.getAll('id').length !== 1 || url.searchParams.getAll('clientTransactionId').length !== 1) {
         return html(res, 400, 'Retorno inválido; la operación queda pendiente.');

@@ -56,6 +56,10 @@ confirmada devuelve al selector de métodos. Un tiempo de espera no prueba cance
 La ventana se abre automáticamente al regresar de una confirmación aprobada;
 al volver a cargar la página se mantiene la operación y se puede continuar la
 verificación desde la opción de tarjeta sin volver a abrir la ventana sola.
+Al finalizar una aprobación con el código simulado, el ensayo conserva el
+registro aprobado y permite crear una nueva reserva. Este mecanismo y el código
+son solo para la demostración; el backend real debe autenticar al cliente,
+verificar el correo, aplicar la licencia e imponer idempotencia de forma atómica.
 No borres ni restablezcas una orden pendiente para reintentar sin verificarla.
 Si la Cajita no llega a abrir por un error de configuración, cierra la pestaña y
 detén el servidor con Ctrl+C. Puedes revisar el identificador del intento con:

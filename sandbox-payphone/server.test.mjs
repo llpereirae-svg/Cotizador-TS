@@ -166,6 +166,7 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
       if (url.endsWith('/payphone-payment-box.js')) return route.fulfill({ contentType: 'text/javascript', body:
         `window.PPaymentButtonBox = class { constructor(config) { window.testAmount = config.amount; } render(id) { document.getElementById(id).textContent = 'Cajita simulada'; } }` });
       if (url.endsWith('/payphone-payment-box.css')) return route.fulfill({ contentType: 'text/css', body: '' });
+      if (url.startsWith('https://tbc.tributasoft.ec/')) return route.fulfill({ contentType: 'text/html', body: 'Destino simulado' });
       return route.abort();
     });
     const page = await context.newPage();
@@ -177,15 +178,15 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     await stateResponse;
     assert.equal(reservations, 0, 'Abrir la página no debe reservar una operación.');
     await page.locator('[data-monthly]').fill('0');
+    await page.locator('#confirm-plan').click();
+    assert.equal(await page.locator('#payment-card').isVisible(), false);
+    await page.locator('[data-monthly]').fill('10');
+    await page.locator('#confirm-plan').click();
     await page.locator('[data-method="tarjeta"]').click();
     assert.equal(await page.locator('#local-payphone-status').innerText(), '');
     assert.equal(reservations, 0, 'Sin aceptar términos no debe abrirse la Cajita.');
-    await page.locator('#card-terms').check();
-    await page.waitForFunction(() => document.querySelector('#local-payphone-status').textContent.includes('10,000'));
-    assert.equal(reservations, 0, 'Una cantidad inválida no debe reservar.');
-    await page.locator('[data-monthly]').fill('10');
     const reservation = page.waitForResponse(response => response.url().endsWith('/sandbox-payphone/reservar'));
-    await page.locator('[data-method="tarjeta"]').click();
+    await page.locator('#card-terms').check();
     const config = await (await reservation).json();
     await page.waitForFunction(() => window.testAmount === 3450);
     await page.clock.fastForward(61000);
@@ -213,6 +214,21 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.getByRole('button', { name: 'Continuar verificación' }).click();
     assert.equal(await page.locator('#code-dialog').isVisible(), true);
+    const before = await send(port, '/renovacion.html');
+    const sessionCookie = before.headers['set-cookie'][0].split(';')[0];
+    const finishHeaders = { cookie: sessionCookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
+    assert.equal((await send(port, '/sandbox-payphone/finalizar', { method: 'POST', headers: finishHeaders, body: JSON.stringify({ code: '000000' }) })).status, 400);
+    assert.equal(JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie: sessionCookie } })).body).active.status, 'approved');
+    await page.locator('#email-code').fill('123456');
+    await page.locator('#verify-code').click();
+    await page.waitForURL('https://tbc.tributasoft.ec/**');
+    assert.equal(app.server.listening, true);
+    const refreshed = await send(port, '/renovacion.html');
+    const cookie = refreshed.headers['set-cookie'][0].split(';')[0];
+    const state = JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie } })).body);
+    assert.equal(state.active, null);
+    const next = await send(port, '/sandbox-payphone/reservar', { method: 'POST', headers: { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' }, body: JSON.stringify({ monthly: 1, termsAccepted: true }) });
+    assert.equal(next.status, 200, 'Una renovación finalizada permite una nueva reserva.');
   } finally {
     await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore();
   }
