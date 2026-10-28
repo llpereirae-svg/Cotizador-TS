@@ -66,7 +66,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function selectMethod(button) {
-  if (selectedMethod === button.dataset.method) return;
+  if (selectedMethod === button.dataset.method) {
+    if (selectedMethod === "tarjeta") document.dispatchEvent(new CustomEvent("paymentmethodchange", { detail: { method: selectedMethod } }));
+    return;
+  }
   noteOperationChange();
   const selected = button.dataset.method;
   selectedMethod = selected;
@@ -78,6 +81,7 @@ function selectMethod(button) {
   });
   bankPanel.hidden = selected !== "banco";
   cardPanel.hidden = selected !== "tarjeta";
+  document.dispatchEvent(new CustomEvent("paymentmethodchange", { detail: { method: selected } }));
 }
 
 operation.addEventListener("change", () => {
