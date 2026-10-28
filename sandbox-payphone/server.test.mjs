@@ -148,6 +148,79 @@ test('el navegador prepara la Cajita con SDK simulado sin contactar a PayPhone',
   }
 });
 
+test('botón de redirección prepara una sola orden y no declara cancelación al regresar', async () => {
+  let requestBody;
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:', fetchImpl: async (_url, request) => {
+    requestBody = JSON.parse(request.body);
+    return { ok: true, json: async () => ({ payWithCard: 'https://pay.payphonetodoesposible.com/Anonymous/Index?paymentId=demo' }) };
+  } });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  try {
+    const page = await send(port, '/sandbox-payphone/boton');
+    const cookie = page.headers['set-cookie'][0].split(';')[0];
+    const headers = { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
+    const created = await send(port, '/sandbox-payphone/boton/preparar', { method: 'POST', headers });
+    assert.equal(created.status, 200);
+    assert.equal(requestBody.amount, 3450);
+    assert.equal((await send(port, '/sandbox-payphone/boton/preparar', { method: 'POST', headers })).status, 409);
+    assert.equal((await send(port, '/cancelacion-payphone.html', { headers: { cookie } })).status, 200);
+    assert.equal(JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie } })).body).active.status, 'reserved');
+  } finally { app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
+test('el retorno del botón usa la confirmación del botón, no la de la Cajita', async () => {
+  let requestBody, confirmUrl;
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:', fetchImpl: async (url, request) => {
+    const body = JSON.parse(request.body);
+    if (url.endsWith('/Prepare')) {
+      requestBody = body;
+      return { ok: true, json: async () => ({ payWithCard: 'https://pay.payphonetodoesposible.com/Anonymous/Index?paymentId=demo' }) };
+    }
+    confirmUrl = url;
+    return { status: 200, text: async () => JSON.stringify({ transactionId: body.id, clientTransactionId: body.clientTxId,
+      amount: 3450, currency: 'USD', statusCode: 3, transactionStatus: 'Approved' }) };
+  } });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  try {
+    const page = await send(port, '/sandbox-payphone/boton');
+    const cookie = page.headers['set-cookie'][0].split(';')[0];
+    const headers = { cookie, origin: `http://localhost:${port}`, 'x-local-sandbox': '1' };
+    assert.equal((await send(port, '/sandbox-payphone/boton/preparar', { method: 'POST', headers })).status, 200);
+    const result = await send(port, `/respuesta-payphone.html?id=42&clientTransactionId=${requestBody.clientTransactionId}`, { headers: { cookie } });
+    assert.equal(result.status, 303);
+    assert.equal(confirmUrl, 'https://pay.payphonetodoesposible.com/api/button/V2/Confirm');
+    assert.equal(JSON.parse((await send(port, '/sandbox-payphone/estado', { headers: { cookie } })).body).active.status, 'approved');
+  } finally { app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
+test('el navegador envía el origen al abrir el formulario simulado', async () => {
+  const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake', dbPath: ':memory:',
+    fetchImpl: async () => ({ ok: true, json: async () => ({ payWithCard: 'https://pay.payphonetodoesposible.com/Anonymous/Index?paymentId=demo' }) }) });
+  app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+  const port = app.server.address().port;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext();
+    let referer;
+    await context.route(`http://localhost:${port}/sandbox-payphone/boton`, async route => {
+      const response = await route.fetch();
+      await route.fulfill({ response, headers: { ...response.headers(), 'referrer-policy': 'same-origin' } });
+    });
+    await context.route('https://pay.payphonetodoesposible.com/**', route => {
+      referer = route.request().headers().referer;
+      return route.fulfill({ status: 200, body: 'Formulario simulado' });
+    });
+    const page = await context.newPage();
+    await page.goto(`http://localhost:${port}/sandbox-payphone/boton`);
+    await page.locator('#start').click();
+    await page.waitForURL('https://pay.payphonetodoesposible.com/**');
+    assert.equal(referer, `http://localhost:${port}/`);
+    await context.close();
+  } finally { await browser.close(); app.server.close(); await once(app.server, 'close'); app.closeStore(); }
+});
+
 test('la renovación local envía solo cantidad y el servidor recalcula, también tras recargar', async () => {
   const app = createSandboxServer({ enabled: true, sandboxVerified: true, token: 'fake', storeId: 'fake',
     dbPath: ':memory:', fetchImpl: async (_url, request) => {

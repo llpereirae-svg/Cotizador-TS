@@ -8,6 +8,7 @@ import {
 // La URL documentada NO identifica el ambiente de la credencial: el modo se
 // selecciona en la aplicación configurada en la cuenta de Payphone.
 export const PAYPHONE_CONFIRM_URL = 'https://paymentbox.payphonetodoesposible.com/api/confirm';
+export const PAYPHONE_BUTTON_CONFIRM_URL = 'https://pay.payphonetodoesposible.com/api/button/V2/Confirm';
 
 function pending(reason) {
   return { status: 'pending', reason };
@@ -53,6 +54,7 @@ export function createPayphoneTestConfirmation({
   token,
   transport,
   attemptStore,
+  confirmUrl = PAYPHONE_CONFIRM_URL,
   timeoutMs = 60000
 } = {}) {
   if (mode !== 'test' || sandboxVerified !== true) {
@@ -61,6 +63,7 @@ export function createPayphoneTestConfirmation({
   const bearerToken = requiredText(token, 'token');
   if (/[\r\n]/.test(bearerToken)) throw new TypeError('Token inválido.');
   if (typeof transport !== 'function') throw new TypeError('Se requiere un transporte inyectado.');
+  if (![PAYPHONE_CONFIRM_URL, PAYPHONE_BUTTON_CONFIRM_URL].includes(confirmUrl)) throw new TypeError('Destino de confirmación inválido.');
   if (!attemptStore || typeof attemptStore.claim !== 'function' || typeof attemptStore.record !== 'function') {
     throw new TypeError('Se requiere un almacén de intentos inyectado.');
   }
@@ -123,7 +126,7 @@ export function createPayphoneTestConfirmation({
 
       const controller = new AbortController();
       const providerResult = await beforeDeadline(() => transport({
-        url: PAYPHONE_CONFIRM_URL,
+        url: confirmUrl,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

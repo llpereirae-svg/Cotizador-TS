@@ -5,8 +5,9 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { createLocalAttemptStore } from './local-store.mjs';
-import { createPayphoneTestConfirmation, PAYPHONE_CONFIRM_URL } from '../integrations/payphone/confirmation-client.mjs';
+import { createPayphoneTestConfirmation, PAYPHONE_CONFIRM_URL, PAYPHONE_BUTTON_CONFIRM_URL } from '../integrations/payphone/confirmation-client.mjs';
 import { buildSandboxCajitaConfig } from './cajita-config.mjs';
+import { prepareRedirect } from './redirect-prepare.mjs';
 import { calculateQuote } from '../assets/quote.js';
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -27,7 +28,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
   const store = createLocalAttemptStore({ filename: dbPath });
   const session = store.session(randomBytes(32).toString('hex'));
   const transport = async ({ url, method, headers, json, signal }) => {
-    if (url !== PAYPHONE_CONFIRM_URL || method !== 'POST') throw new Error('Destino no permitido.');
+    if (![PAYPHONE_CONFIRM_URL, PAYPHONE_BUTTON_CONFIRM_URL].includes(url) || method !== 'POST') throw new Error('Destino no permitido.');
     const response = await fetchImpl(url, { method, headers, body: JSON.stringify(json), signal, redirect: 'error' });
     const responseText = await response.text();
     if (responseText.length > 65536) throw new Error('Respuesta demasiado grande.');
@@ -36,6 +37,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
     return { httpStatus: response.status, data };
   };
   const client = createPayphoneTestConfirmation({ mode: 'test', sandboxVerified: true, token, transport, attemptStore: store });
+  const buttonClient = createPayphoneTestConfirmation({ mode: 'test', sandboxVerified: true, token, transport, attemptStore: store, confirmUrl: PAYPHONE_BUTTON_CONFIRM_URL });
   const html = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(body); };
   const server = createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -67,7 +69,35 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
         .replace('</body>', '<script type="module" src="/sandbox-payphone/renewal-bridge.js"></script></body>');
       return html(res, 200, patched);
     }
+    if (req.method === 'GET' && url.pathname === '/sandbox-payphone/boton') {
+      res.setHeader('Referrer-Policy', 'origin-when-cross-origin');
+      res.setHeader('Set-Cookie', `pp_session=${session}; HttpOnly; SameSite=Lax; Path=/`);
+      return html(res, 200, `<!doctype html><html lang="es"><meta name="referrer" content="origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prueba de redirección</title><body><h1>Prueba del botón PayPhone</h1><p>Se creará una orden de prueba de 10 documentos mensuales. Usa únicamente credenciales de prueba.</p><button id="start">Abrir PayPhone</button><p id="message" role="status"></p><script src="/sandbox-payphone/boton.js"></script></body></html>`);
+    }
     if (!authorized) return html(res, 403, 'Abre primero la página de prueba en este navegador.');
+    if (req.method === 'GET' && url.pathname === '/sandbox-payphone/boton.js') {
+      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+      return res.end(`document.querySelector('#start').onclick=async function(){this.disabled=true;const m=document.querySelector('#message');m.textContent='Preparando…';try{const r=await fetch('/sandbox-payphone/boton/preparar',{method:'POST',headers:{'X-Local-Sandbox':'1'}});if(!r.ok)throw Error();const d=await r.json();location.assign(d.url)}catch{m.textContent='No se pudo preparar el pago. Verifica el estado antes de reintentar.'}}`);
+    }
+    if (req.method === 'POST' && url.pathname === '/sandbox-payphone/boton/preparar') {
+      if (![origin, ...(tunnelOrigin ? [tunnelOrigin] : [])].includes(req.headers.origin) || req.headers['x-local-sandbox'] !== '1') return html(res, 403, 'Origen no autorizado.');
+      const monthly = 10, quote = calculateQuote(monthly), clientTransactionId = 'local-' + randomUUID();
+      if (!store.reserve({ renewalRef: 'demo-unica', clientTransactionId, amountCents: quote.totalCents, currency: 'USD', monthly, paymentKind: 'button' })) { logEvent('boton_reserva_rechazada'); return html(res, 409, 'Existe una operación activa.'); }
+      logEvent('boton_reserva_creada');
+      try {
+        const paymentUrl = await prepareRedirect({ monthly, transactionId: clientTransactionId, origin: tunnelOrigin || origin, storeId, calculateQuote,
+          transport: async payload => {
+            const response = await fetchImpl('https://pay.payphonetodoesposible.com/api/button/Prepare', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Referer: `${tunnelOrigin || origin}/` }, body: JSON.stringify(payload), redirect: 'error', signal: AbortSignal.timeout(30000) });
+            if (!response.ok) { logEvent(`boton_proveedor_http_${Number(response.status) || 0}`); throw new Error('Preparación no confirmada.'); }
+            return response.json();
+          } });
+        logEvent('boton_enlace_preparado');
+        res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ url: paymentUrl }));
+      } catch { logEvent('boton_preparacion_no_confirmada'); return html(res, 502, 'Preparación incierta; verifica antes de reintentar.'); }
+    }
+    if (req.method === 'GET' && url.pathname === '/cancelacion-payphone.html') {
+      return html(res, 200, 'Regresaste desde la página de PayPhone. La cancelación aún no ha sido verificada; no inicies otro pago.');
+    }
     if (req.method === 'GET' && url.pathname === '/sandbox-payphone/test-page.js') {
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' }); return res.end(browser);
     }
@@ -147,7 +177,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
         return html(res, 200, `Estado de la operación de prueba: ${escapeHtml(order.status)}. No reintentes si sigue pendiente.`);
       }
       logEvent('confirmacion_iniciada');
-      const result = await client.confirm({ id, clientTransactionId, order });
+      const result = await (order.paymentKind === 'button' ? buttonClient : client).confirm({ id, clientTransactionId, order });
       const pendingReasons = new Set(['already_claimed', 'claim_unavailable', 'invalid_order', 'provider_timeout', 'record_unavailable', 'unresolved']);
       logEvent(result.status === 'approved' ? 'confirmacion_aprobada' : result.status === 'canceled' ? 'confirmacion_cancelada' : `confirmacion_pendiente_${pendingReasons.has(result.reason) ? result.reason : 'desconocida'}`);
       if (result.status === 'approved') { res.writeHead(303, { Location: '/renovacion.html?pago=aprobado' }); return res.end(); }

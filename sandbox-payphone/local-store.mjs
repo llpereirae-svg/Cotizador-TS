@@ -38,6 +38,9 @@ export function createLocalAttemptStore({ filename } = {}) {
     if (!columns.some(column => column.name === 'finalized')) {
       db.exec('ALTER TABLE sandbox_attempts ADD COLUMN finalized INTEGER NOT NULL DEFAULT 0 CHECK (finalized IN (0, 1))');
     }
+    if (!columns.some(column => column.name === 'payment_kind')) {
+      db.exec("ALTER TABLE sandbox_attempts ADD COLUMN payment_kind TEXT NOT NULL DEFAULT 'cajita' CHECK (payment_kind IN ('cajita','button'))");
+    }
     db.exec("DROP INDEX IF EXISTS sandbox_one_active_per_renewal; CREATE UNIQUE INDEX sandbox_one_active_per_renewal ON sandbox_attempts(renewal_ref) WHERE status != 'canceled' AND finalized = 0");
     const schema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sandbox_manual_resolutions'").get()?.sql;
     if (!schema) throw new Error('No se encontró el historial de declaraciones.');
@@ -61,10 +64,10 @@ export function createLocalAttemptStore({ filename } = {}) {
     throw error;
   }
   const insert = db.prepare(`INSERT INTO sandbox_attempts
-    (client_tx_id, renewal_ref, amount_cents, currency, monthly, status)
-    VALUES (?, ?, ?, ?, ?, 'reserved')`);
+    (client_tx_id, renewal_ref, amount_cents, currency, monthly, payment_kind, status)
+    VALUES (?, ?, ?, ?, ?, ?, 'reserved')`);
   const find = db.prepare(`SELECT client_tx_id AS clientTransactionId,
-    renewal_ref AS renewalRef, amount_cents AS amountCents, currency,
+    renewal_ref AS renewalRef, amount_cents AS amountCents, currency, payment_kind AS paymentKind,
     provider_id AS providerTransactionId,
     CASE WHEN EXISTS (SELECT 1 FROM sandbox_manual_resolutions m WHERE m.client_tx_id = sandbox_attempts.client_tx_id)
       THEN 'closed_manually' ELSE status END AS status
@@ -95,9 +98,11 @@ export function createLocalAttemptStore({ filename } = {}) {
       const amountCents = positiveInteger(order?.amountCents, 'amountCents');
       const monthly = positiveInteger(order?.monthly, 'monthly');
       const currency = requiredText(order?.currency, 'currency');
+      const paymentKind = order?.paymentKind ?? 'cajita';
+      if (!['cajita', 'button'].includes(paymentKind)) throw new TypeError('Tipo de pago inválido.');
       if (currency !== 'USD' || clientTransactionId.length > 50) throw new TypeError('Orden inválida.');
       try {
-        insert.run(clientTransactionId, renewalRef, amountCents, currency, monthly);
+        insert.run(clientTransactionId, renewalRef, amountCents, currency, monthly, paymentKind);
         return true;
       } catch (error) {
         if (error?.code === 'ERR_SQLITE_ERROR' && /UNIQUE constraint failed/.test(error.message)) return false;
