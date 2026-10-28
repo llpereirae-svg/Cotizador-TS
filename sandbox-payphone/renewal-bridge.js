@@ -19,6 +19,8 @@ function protectOperation(monthly, paymentState) {
   if (paymentState === 'approved') {
     document.querySelector('#pending-message strong').textContent = 'Operación de prueba aprobada';
     document.querySelector('#pending-message p').textContent = 'Esta orden ficticia ya se completó y permanece bloqueada para evitar duplicados.';
+    document.querySelector('#transfer-pending strong').textContent = 'Pago con tarjeta aprobado';
+    document.querySelector('#transfer-pending p').textContent = 'La operación ya fue aprobada. Continúa su verificación para evitar un pago duplicado.';
   } else {
     document.querySelector('#pending-message p').textContent = 'Hay una operación de prueba activa. Confirma su estado antes de intentar otro método.';
   }
