@@ -48,6 +48,14 @@ async function withPage(run, options = {}) {
 
 const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.from("comprobante de prueba") });
 
+test("la fecha de pago inicia hoy y admite una fecha anterior", async () => {
+  await withPage(async page => {
+    assert.equal(await page.locator("#payment-date").inputValue(), "2026-10-28");
+    await page.locator("#payment-date").fill("2026-10-20");
+    assert.equal(await page.locator("#payment-date").inputValue(), "2026-10-20");
+  }, { now: "2026-10-28T00:30:00-05:00" });
+});
+
 test("confirmar cantidad muestra el pago y permite modificarla antes de reservar", async () => {
   await withPage(async page => {
     assert.equal(await page.locator("#payment-card").isVisible(), false);
