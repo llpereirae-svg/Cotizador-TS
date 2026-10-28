@@ -172,7 +172,7 @@ export function createSandboxServer({ enabled, sandboxVerified, token, storeId, 
       if (attested !== true) return html(res, 400, 'Se requiere una declaración explícita.');
       const candidate = store.recoveryCandidate('demo-unica');
       const order = candidate && store.get(candidate.clientTransactionId);
-      if (!candidate || candidate.status !== 'reserved' || candidate.providerTransactionId !== null || order?.paymentKind !== 'button') {
+      if (!candidate || candidate.status !== 'reserved' || candidate.providerTransactionId !== null || !['button', 'cajita'].includes(order?.paymentKind)) {
         return html(res, 409, 'El estado requiere revisión.');
       }
       if (!store.closeManually({ clientTransactionId: candidate.clientTransactionId, attestation: 'not_submitted' })) return html(res, 409, 'El estado cambió; verifica la operación.');

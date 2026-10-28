@@ -326,8 +326,11 @@ test('la renovación local envía solo cantidad y el servidor recalcula, tambié
     assert.equal(reservations, 1, 'Cambiar de método no debe crear otro intento.');
     assert.equal(await page.locator('[data-monthly]').isDisabled(), true);
     await page.reload();
-    await page.waitForFunction(() => document.querySelector('[data-monthly]').disabled);
+    await page.getByText('Cancelar transacción', { exact: true }).waitFor({ state: 'attached' });
+    assert.equal(await page.locator('[data-monthly]').isDisabled(), false);
     assert.equal(await page.locator('[data-monthly]').inputValue(), '10');
+    await page.locator('#confirm-plan').click();
+    assert.equal(await page.getByRole('button', { name: 'Cancelar transacción' }).isVisible(), true);
     assert.equal(await page.locator('#simulate-renewal').isDisabled(), true);
     await page.goto(`http://localhost:${port}/respuesta-payphone.html?id=42&clientTransactionId=${config.clientTransactionId}`);
     await page.locator('#code-dialog').waitFor({ state: 'visible' });
