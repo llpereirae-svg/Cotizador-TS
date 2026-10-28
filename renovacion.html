@@ -66,7 +66,7 @@
           <div class="payment-options" role="tablist" aria-label="Forma de pago">
             <button class="payment-option is-selected" id="tab-banco" type="button" role="tab" data-method="banco" aria-selected="true" aria-controls="bank-panel">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-5 9 5M4 10h16M5 20h14M7 10v8M12 10v8M17 10v8M3 21h18"/></svg>
-              <span><strong>Transferencia / depósito</strong></span>
+              <span><strong>Transferencia / Depósito bancario</strong></span>
               <span class="option-indicator" aria-hidden="true"></span>
             </button>
             <button class="payment-option" id="tab-tarjeta" type="button" role="tab" data-method="tarjeta" aria-selected="false" aria-controls="card-panel" tabindex="-1">
@@ -77,7 +77,7 @@
           </div>
           <div id="bank-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-banco">
            <div id="bank-form">
-            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito.</p></div></div>
+            <div class="panel-title"><div><h3>Datos de tu pago</h3><p>Completa los datos de tu transferencia o depósito bancario.</p></div></div>
             <div id="transfer-pending" class="pending-message" role="status" hidden><strong>Pago con tarjeta pendiente</strong><p>Confirma el estado del pago anterior antes de completar otro.</p></div>
             <details class="bank-details">
               <summary><span>Ver datos bancarios para transferir</span></summary>
@@ -100,7 +100,7 @@
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">Formatos admitidos: JPG, JPEG, PNG o PDF.<br>Tamaño máximo: 500 KB.</p></div>
             </div>
             <p id="code-request-message" class="field-error" role="status" aria-live="polite" hidden></p>
-            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos, condiciones y protección de datos</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="terms"><span><label for="terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button> (borrador).</span></div>
             <button class="button-primary action-button" type="button" id="simulate-renewal">Continuar</button>
             <p class="demo-disclosure">Demostración: no envía comprobantes ni procesa pagos.</p>
             <p class="simulation-message" id="transfer-message" role="status" aria-live="polite"></p>
@@ -108,17 +108,17 @@
           </div>
           <div id="card-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-tarjeta" hidden>
             <div class="panel-title"><div><h3>Pago con tarjeta</h3></div></div>
-            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos, condiciones y protección de datos</button> (borrador).</span></div>
+            <div class="terms-check"><input type="checkbox" id="card-terms"><span><label for="card-terms">Acepto los </label><button class="text-link" type="button" data-open-terms>términos y condiciones, política de protección de datos</button> (borrador).</span></div>
             <div class="card-placeholder" id="payphone-container">
               <span class="card-placeholder-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span>
               <div><strong>Pago con tarjeta no disponible</strong><p>Este método estará disponible más adelante.</p></div>
             </div>
-            <button class="button-secondary action-button" type="button" id="simulate-pending">Probar estado de pago</button>
+            <button class="button-secondary action-button" type="button" id="simulate-pending" hidden>Probar estado de pago</button>
             <div id="pending-message" class="pending-message" role="status" aria-live="polite" hidden><strong>Estado de prueba: pendiente</strong><p>No se realizó ningún cobro. Confirma el estado antes de intentar otro pago.</p><button class="button-secondary resolution-button" type="button" id="simulate-cancelled">Simular cancelación confirmada</button></div><p id="card-resolution-message" class="field-hint" role="status" aria-live="polite" hidden></p>
           </div>
           <details class="payment-info">
             <summary>Información a considerar</summary>
-            <ul><li>La vigencia del plan es de un año.</li><li>Los comprobantes reportados se revisan después del envío.</li><li>El valor y la fecha de vencimiento deben confirmarse antes de pagar.</li></ul>
+            <ul><li>El plan de facturación prepago tiene una duración de un año.</li><li>El pago se revisará en dos horas hábiles. Si es indebido o fraudulento, el servicio podrá suspenderse.</li><li>El tratamiento de datos y las condiciones del servicio constan en el borrador del contrato.</li></ul>
           </details>
         </div>
       </section>
