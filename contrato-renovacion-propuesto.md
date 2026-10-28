@@ -14,7 +14,7 @@ El backend debe calcular y validar la cotización y la vigencia definitiva. La i
 
 ## Código de correo
 
-La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. En la integración real la solicitud del código debe iniciarse solo después de que el backend confirme la carga del comprobante; seleccionar un archivo no es suficiente. El backend debe validar formato, contenido y tamaño (máximo 500,000 bytes). En la maqueta la solicitud es simulada al seleccionar un JPG, JPEG, PNG o PDF válido y ningún archivo sale del navegador. Si el comprobante cambia, debe invalidarse la verificación anterior. En la maqueta las operaciones son locales, no envían correo y solo aceptan el código de ejemplo mostrado.
+La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. En la integración real la solicitud del código debe iniciarse solo después de que el backend confirme la carga del comprobante; seleccionar un archivo no es suficiente. El backend debe validar formato, contenido y tamaño (máximo 500,000 bytes). En la maqueta, tras validar los campos y pulsar Continuar, se abre una ventana con un código simulado; ningún archivo o correo sale del navegador. Si el comprobante cambia, debe invalidarse la verificación anterior. Tras la aprobación de la tarjeta, el correo y la ventana de verificación también dependen del backend de negocio; el ensayo local solo muestra una simulación.
 
 ### Ejemplos conceptuales para el código
 
@@ -76,7 +76,7 @@ No hay rutas de API, credenciales, certificados ni números de cuenta definidos 
 
 ## Términos y condiciones
 
-El documento de términos y su aceptación real están pendientes de integración. La casilla de la maqueta solo reconoce que se está usando una vista de prueba; no representa una aceptación legal.
+La interfaz incluye un borrador para revisión, no una versión contractual aprobada. Antes de producción, TributaSoft debe aprobar el texto y el backend debe registrar la aceptación de la versión correspondiente. En transferencia o depósito se pide aceptar antes de continuar; en tarjeta se pide antes de reservar y abrir la Cajita. Las casillas y el booleano del ensayo local no constituyen una aceptación legal persistente ni sustituyen el registro del backend.
 
 ## Pruebas locales de regresión
 
