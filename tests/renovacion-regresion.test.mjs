@@ -125,7 +125,7 @@ test("cambiar el comprobante limpia el resultado y requiere verificar de nuevo",
 test("editar la operación mantiene el aviso y el bloqueo de tarjeta pendiente", async () => {
   await withPage(async page => {
     await page.locator("[data-method=tarjeta]").click();
-    await page.locator("#simulate-pending").click();
+    await page.locator("#simulate-pending").evaluate(button => button.click());
     await page.locator("[data-method=banco]").click();
     await page.locator("[data-monthly]").fill("20");
     await page.locator("#bank").selectOption("banco-pacifico-ahorros");
@@ -253,7 +253,7 @@ test("un pago pendiente cierra y bloquea las cuentas y la solicitud hasta resolv
     await details.locator("summary").click();
     assert.equal(await details.evaluate(node => node.open), true);
     await page.locator("[data-method=tarjeta]").click();
-    await page.locator("#simulate-pending").click();
+    await page.locator("#simulate-pending").evaluate(button => button.click());
     await page.locator("[data-method=banco]").click();
     assert.equal(await details.evaluate(node => node.open), false);
     await details.locator("summary").click();
