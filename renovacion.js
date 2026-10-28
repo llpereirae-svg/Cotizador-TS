@@ -1,5 +1,30 @@
 import { mountQuote } from "./assets/quote.js";
-import { DEMO_EXPIRY, demoRenewalAdapter } from "./renovacion-mock.js";
+import { demoRenewalAdapter } from "./renovacion-mock.js";
+
+function estimateExpiry(today) {
+  const year = today.getFullYear() + 1;
+  const month = today.getMonth();
+  const day = Math.min(today.getDate(), new Date(year, month + 1, 0).getDate());
+  const localDate = new Date(year, month, day);
+  const iso = [year, String(month + 1).padStart(2, "0"), String(day).padStart(2, "0")].join("-");
+  return { iso, label: new Intl.DateTimeFormat("es-EC", { day: "numeric", month: "long", year: "numeric" }).format(localDate) };
+}
+let expiryEstimate;
+let midnightTimer;
+function refreshExpiry() {
+  const today = new Date();
+  const nextEstimate = estimateExpiry(today);
+  const changed = expiryEstimate && expiryEstimate.iso !== nextEstimate.iso;
+  expiryEstimate = nextEstimate;
+  const expiryNode = document.querySelector("#estimated-expiry");
+  expiryNode.dateTime = expiryEstimate.iso;
+  expiryNode.textContent = expiryEstimate.label;
+  document.querySelector("#copyright-year").textContent = String(today.getFullYear());
+  if (changed) noteOperationChange();
+  clearTimeout(midnightTimer);
+  const nextMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  midnightTimer = setTimeout(refreshExpiry, Math.max(1000, nextMidnight.getTime() - today.getTime() + 100));
+}
 
 const quote = mountQuote();
 const methods = [...document.querySelectorAll("[data-method]")];
@@ -19,6 +44,9 @@ let codeVerified = false;
 let verificationReference = null;
 let cardPending = false;
 let operationRevision = 0;
+let receiptRevision = 0;
+const bankDetails = document.querySelector(".bank-details");
+const bankSummary = bankDetails.querySelector("summary");
 
 function noteOperationChange() {
   operationRevision += 1;
@@ -27,6 +55,11 @@ function noteOperationChange() {
     delete transferMessage.dataset.kind;
   }
 }
+
+refreshExpiry();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshExpiry();
+});
 
 methods.forEach(button => {
   button.addEventListener("click", () => {
@@ -42,24 +75,40 @@ methods.forEach(button => {
   });
 });
 
-document.querySelector("#simulate-code").addEventListener("click", async () => {
-  noteOperationChange();
-  if (!receiptInput.files.length) {
-    codeRequestMessage.textContent = "Selecciona primero un comprobante para simular el envío del código.";
-    codeRequestMessage.hidden = false;
-    receiptInput.focus();
-    return;
-  }
-  codeRequestMessage.hidden = true;
-  const revision = operationRevision;
-  await demoRenewalAdapter.requestEmailCode();
-  if (revision !== operationRevision || !receiptInput.files.length) return;
+function resetCode() {
+  receiptRevision += 1;
   codeVerified = false;
   verificationReference = null;
   codeInput.value = "";
+  codeEntry.hidden = true;
+  codeMessage.textContent = "";
+}
+
+function validReceipt(file) {
+  if (!file) return false;
+  const match = /\.(jpg|jpeg|png|pdf)$/i.exec(file.name);
+  if (!match || file.size > 500000 || file.size === 0) return false;
+  const allowedTypes = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", pdf: "application/pdf" };
+  return !file.type || file.type.toLowerCase() === allowedTypes[match[1].toLowerCase()];
+}
+
+async function requestCodeForReceipt() {
+  const file = receiptInput.files[0];
+  if (!validReceipt(file) || cardPending) return;
+  const revision = receiptRevision;
+  codeRequestMessage.textContent = "Preparando código de prueba…";
+  codeRequestMessage.hidden = false;
+  await demoRenewalAdapter.requestEmailCode();
+  if (revision !== receiptRevision || cardPending || receiptInput.files[0] !== file) return;
+  codeRequestMessage.hidden = true;
   codeEntry.hidden = false;
-  codeMessage.textContent = "No se envió ningún correo. Usa el código de ejemplo para probar la pantalla.";
-  codeInput.focus();
+  codeMessage.textContent = "No se envió ningún correo. Usa el código de ejemplo para probar.";
+}
+
+bankSummary.addEventListener("click", event => {
+  if (!cardPending) return;
+  event.preventDefault();
+  transferPending.hidden = false;
 });
 
 document.querySelector("#verify-code").addEventListener("click", async () => {
@@ -92,7 +141,7 @@ renewalButton.addEventListener("click", async () => {
   const bank = document.querySelector("#bank").value;
   const operationType = document.querySelector("#operation").value;
   const paymentDate = document.querySelector("#payment-date").value;
-  const receiptSelected = receiptInput.files.length > 0;
+  const receiptSelected = validReceipt(receiptInput.files[0]);
   const terms = document.querySelector("#terms").checked;
   if (!currentQuote) {
     transferMessage.textContent = "Ingresa una cantidad válida de documentos.";
@@ -101,7 +150,7 @@ renewalButton.addEventListener("click", async () => {
     return;
   }
   if (!bank || !paymentDate || !receiptSelected || !codeVerified || !terms) {
-    transferMessage.textContent = "Para probar el flujo, completa los datos, selecciona un archivo, verifica el código y confirma que es una vista de prueba.";
+    transferMessage.textContent = "Completa los datos, selecciona un archivo, verifica el código y confirma los términos pendientes.";
     transferMessage.dataset.kind = "validation";
     return;
   }
@@ -109,7 +158,7 @@ renewalButton.addEventListener("click", async () => {
   await demoRenewalAdapter.submitRenewal({
     documentosPorMes: currentQuote.monthly,
     documentosPorAnio: currentQuote.annual,
-    fechaVencimiento: DEMO_EXPIRY,
+    fechaVencimiento: expiryEstimate.iso,
     metodoPago: "transferencia_o_deposito",
     banco: bank,
     tipoOperacion: operationType,
@@ -118,13 +167,16 @@ renewalButton.addEventListener("click", async () => {
     verificacionCorreoReferencia: verificationReference
   });
   if (revision !== operationRevision || cardPending) return;
-  transferMessage.textContent = "Simulación completada. No se envió información ni se realizó ningún pago.";
+  transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
   transferMessage.dataset.kind = "complete";
 });
 
 document.querySelector("#simulate-pending").addEventListener("click", () => {
   noteOperationChange();
   cardPending = true;
+  resetCode();
+  bankDetails.open = false;
+  bankSummary.setAttribute("aria-disabled", "true");
   pendingMessage.hidden = false;
   transferPending.hidden = false;
   renewalButton.disabled = true;
@@ -136,6 +188,8 @@ document.querySelector("#simulate-pending").addEventListener("click", () => {
 
 document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardPending = false;
+  bankSummary.removeAttribute("aria-disabled");
+  void requestCodeForReceipt();
   pendingMessage.hidden = true;
   transferPending.hidden = true;
   renewalButton.disabled = false;
@@ -146,22 +200,26 @@ document.querySelector("#simulate-cancelled").addEventListener("click", () => {
   cardResolutionMessage.hidden = false;
 });
 
-receiptInput.addEventListener("change", event => {
+receiptInput.addEventListener("change", () => {
   noteOperationChange();
-  document.querySelector("#file-name").textContent = event.target.files[0]?.name || "Sin archivo";
-  if (!codeEntry.hidden || codeVerified) {
-    codeVerified = false;
-    verificationReference = null;
-    codeInput.value = "";
-    codeEntry.hidden = true;
-    codeMessage.textContent = "";
-    codeRequestMessage.textContent = event.target.files.length
-      ? "El comprobante cambió. Simula de nuevo el envío del código."
-      : "El comprobante se retiró. Selecciona otro para simular el envío del código.";
-    codeRequestMessage.hidden = false;
-  } else {
+  resetCode();
+  const file = receiptInput.files[0];
+  document.querySelector("#file-name").textContent = file?.name || "Sin archivo";
+  if (!file) {
     codeRequestMessage.hidden = true;
+    return;
   }
+  if (!validReceipt(file)) {
+    codeRequestMessage.textContent = "Selecciona un JPG, JPEG, PNG o PDF de hasta 500 KB (500,000 bytes).";
+    codeRequestMessage.hidden = false;
+    return;
+  }
+  if (cardPending) {
+    codeRequestMessage.textContent = "Hay un pago con tarjeta pendiente. Confirma su estado antes de solicitar el código.";
+    codeRequestMessage.hidden = false;
+    return;
+  }
+  void requestCodeForReceipt();
 });
 
 for (const selector of ["#bank", "#operation", "#payment-date", "#terms"]) {

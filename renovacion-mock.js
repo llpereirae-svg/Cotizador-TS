@@ -1,5 +1,4 @@
 /* Adaptador de demostración: no envía datos ni se conecta a ningún servicio. */
-export const DEMO_EXPIRY = "2027-11-01";
 export const demoRenewalAdapter = {
   async requestEmailCode() {
     return { status: "simulado", solicitudReferencia: "solicitud-de-ejemplo", message: "Código de ejemplo generado en esta vista." };

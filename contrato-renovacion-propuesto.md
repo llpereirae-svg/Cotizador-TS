@@ -10,7 +10,7 @@ El backend debe calcular y validar la cotización y la vigencia definitiva. La i
 
 ## Código de correo
 
-La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. La solicitud del código debe requerir un comprobante previamente cargado. Si el comprobante cambia, debe invalidarse la verificación anterior. En la maqueta las operaciones son locales, no envían correo y solo aceptan el código de ejemplo mostrado.
+La interfaz necesita solicitar el envío de un código al correo asociado a la cuenta y comprobar el código. El servidor debe gestionar destino, vencimiento, reintentos y resultado. En la integración real la solicitud del código debe iniciarse solo después de que el backend confirme la carga del comprobante; seleccionar un archivo no es suficiente. El backend debe validar formato, contenido y tamaño (máximo 500,000 bytes). En la maqueta la solicitud es simulada al seleccionar un JPG, JPEG, PNG o PDF válido y ningún archivo sale del navegador. Si el comprobante cambia, debe invalidarse la verificación anterior. En la maqueta las operaciones son locales, no envían correo y solo aceptan el código de ejemplo mostrado.
 
 ### Ejemplos conceptuales para el código
 
@@ -44,7 +44,7 @@ Ejemplo conceptual de datos que la interfaz necesitaría entregar o confirmar; n
   "documentosPorAnio": 120,
   "fechaVencimiento": "2027-11-01",
   "metodoPago": "transferencia_o_deposito",
-  "banco": "banco-ejemplo",
+  "banco": "banco-pacifico-ahorros",
   "tipoOperacion": "transferencia",
   "fechaPago": "2026-11-01",
   "comprobanteReferencia": "referencia-de-ejemplo",
@@ -52,11 +52,11 @@ Ejemplo conceptual de datos que la interfaz necesitaría entregar o confirmar; n
 }
 ```
 
-El servidor debe validar la identidad y recalcular los importes, la cantidad anual y la fecha. La referencia al comprobante y la verificación son ejemplos de contrato, no identificadores reales. La selección del archivo en la maqueta nunca sale del navegador. El mecanismo y las reglas de carga segura deben acordarse con el backend.
+El servidor debe validar la identidad y recalcular los importes, la cantidad anual y la fecha. La fecha mostrada por la maqueta es una estimación calculada localmente y no sustituye el vencimiento autorizado por el backend. Los identificadores de bancos son propuestos y deben acordarse con el backend. La referencia al comprobante y la verificación son ejemplos de contrato, no identificadores reales. La selección del archivo en la maqueta nunca sale del navegador. El mecanismo y las reglas de carga segura deben acordarse con el backend.
 
 ## Tarjeta
 
-La página reservará un espacio para la integración oficial de PayPhone. El backend debe crear y confirmar la operación, proteger sus credenciales, conciliar el resultado y evitar cobros duplicados. Un timeout no equivale a cancelación: el resultado debe quedar pendiente hasta confirmar el estado o el reverso. No reintentar un cobro ni completar otro pago mientras no se resuelva el estado anterior, aunque se permita cambiar de método o salir. El backend debe mantener y verificar este estado entre recargas y dispositivos. La maqueta solo conserva el estado en memoria y su botón de cancelación confirmada es una simulación, no una consulta ni una cancelación real.
+La página reserva el contenedor visual `#payphone-container` para la integración oficial de PayPhone; actualmente no procesa ni solicita datos de tarjeta. El backend debe crear y confirmar la operación, proteger sus credenciales, conciliar el resultado y evitar cobros duplicados. Un timeout no equivale a cancelación: el resultado debe quedar pendiente hasta confirmar el estado o el reverso. No reintentar un cobro ni completar otro pago mientras no se resuelva el estado anterior, aunque se permita cambiar de método o salir. El backend debe mantener y verificar este estado entre recargas y dispositivos. La maqueta solo conserva el estado en memoria y su botón de cancelación confirmada es una simulación, no una consulta ni una cancelación real.
 
 ## Estados que el backend debe definir
 
