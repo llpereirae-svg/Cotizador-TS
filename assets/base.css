@@ -63,19 +63,6 @@ h2 { margin-bottom: 4px; font-size: 20px; line-height: 1.22; }
 .basis-note p { margin: 0; }
 .summary-card { overflow: hidden; }
 .summary-card .card-body { padding: 27px 30px 30px; }
-.summary-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.summary-top h2 { margin-bottom: 3px; }
-.summary-top p { color: var(--muted); font-size: 13px; margin: 0; }
-.summary-period { display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; border-radius: 999px; padding: 5px 9px; background: #eef5fa; color: #315d78; font-size: 12px; font-weight: 700; }
-.annual-docs { padding: 25px 0 23px; border-bottom: 1px solid #e6ebf1; }
-.annual-docs strong { display: block; color: var(--navy); font: 700 38px/1 "DM Sans", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
-.annual-docs span { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
-.summary-lines { padding: 19px 0 16px; }
-.summary-line { display: flex; justify-content: space-between; align-items: baseline; gap: 15px; margin: 0 0 10px; color: var(--muted); font-size: 14px; }
-.summary-line strong { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
-.summary-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid #e6ebf1; }
-.summary-total span { color: var(--text); font-weight: 700; }
-.summary-total strong { color: var(--navy); font: 700 30px/1 "DM Sans", sans-serif; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .summary-caption { margin: 14px 0 0; font-size: 12px; line-height: 1.45; color: #586779; }
 .note-footer { margin: 22px 0 0; color: #586779; font-size: 12px; text-align: center; }
 .button-primary, .button-secondary { min-height: 48px; border-radius: 9px; padding: 11px 18px; font-size: 14px; font-weight: 700; }
