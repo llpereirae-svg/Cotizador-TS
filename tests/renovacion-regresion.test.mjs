@@ -133,6 +133,19 @@ test("no se solicitan dos códigos con clics simultáneos", async () => {
   });
 });
 
+test("reenviar código es simulado y limpia el código anterior", async () => {
+  await withPage(async page => {
+    await page.locator("#payment-date").fill("2026-11-01");
+    await page.locator("#receipt").setInputFiles(sampleFile("ejemplo.pdf"));
+    await page.locator("#terms").check();
+    await page.locator("#simulate-renewal").click();
+    await page.locator("#email-code").fill("123456");
+    await page.locator("#resend-code").click();
+    assert.equal(await page.locator("#email-code").inputValue(), "");
+    assert.match(await page.locator("#code-message").innerText(), /Reenvío simulado/);
+  });
+});
+
 test("depósito y transferencia se distinguen sin pedir tipo de depósito", async () => {
   await withPage(async page => {
     assert.equal(await page.locator("#deposit-type").count(), 0);
