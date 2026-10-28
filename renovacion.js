@@ -32,6 +32,8 @@ const depositPanel = document.querySelector("#deposit-panel");
 const transferPanel = document.querySelector("#transfer-panel");
 const cardPanel = document.querySelector("#card-panel");
 const bankForm = document.querySelector("#bank-form");
+const depositTypeField = document.querySelector("#deposit-type-field");
+const depositType = document.querySelector("#deposit-type");
 const codeEntry = document.querySelector("#code-entry");
 const codeRequestMessage = document.querySelector("#code-request-message");
 const receiptInput = document.querySelector("#receipt");
@@ -78,6 +80,8 @@ function selectMethod(button) {
   depositPanel.hidden = selected !== "deposito";
   transferPanel.hidden = selected !== "transferencia";
   cardPanel.hidden = selected !== "tarjeta";
+  depositTypeField.hidden = selected !== "deposito";
+  depositType.required = selected === "deposito";
   if (selected !== "tarjeta") {
     (selected === "deposito" ? depositPanel : transferPanel).append(bankForm);
     document.querySelector("#bank-method-description").textContent = selected === "deposito"
@@ -190,6 +194,12 @@ renewalButton.addEventListener("click", async () => {
     document.querySelector("#monthly").focus();
     return;
   }
+  if (operationType === "deposito" && !["cheque", "efectivo"].includes(depositType.value)) {
+    transferMessage.textContent = "Selecciona el tipo de depósito.";
+    transferMessage.dataset.kind = "validation";
+    depositType.focus();
+    return;
+  }
   if (!bank || !paymentDate || !receiptSelected || !codeVerified || !terms) {
     transferMessage.textContent = "Completa los datos, selecciona un archivo, verifica el código y confirma los términos pendientes.";
     transferMessage.dataset.kind = "validation";
@@ -203,6 +213,7 @@ renewalButton.addEventListener("click", async () => {
     metodoPago: "transferencia_o_deposito",
     banco: bank,
     tipoOperacion: operationType,
+    ...(operationType === "deposito" ? { tipoDeposito: depositType.value } : {}),
     fechaPago: paymentDate,
     comprobanteSeleccionado: receiptSelected,
     verificacionCorreoReferencia: verificationReference
@@ -263,7 +274,7 @@ receiptInput.addEventListener("change", () => {
   void requestCodeForReceipt();
 });
 
-for (const selector of ["#bank", "#payment-date", "#terms"]) {
+for (const selector of ["#bank", "#deposit-type", "#payment-date", "#terms"]) {
   document.querySelector(selector).addEventListener("change", noteOperationChange);
 }
 document.addEventListener("quotechange", noteOperationChange);

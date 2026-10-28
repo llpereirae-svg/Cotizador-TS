@@ -48,6 +48,7 @@ const sampleFile = name => ({ name, mimeType: "application/pdf", buffer: Buffer.
 
 async function completeDemo(page) {
   await page.locator("#bank").selectOption("banco-pacifico-ahorros");
+  if (await page.locator("#deposit-type").isVisible()) await page.locator("#deposit-type").selectOption("efectivo");
   await page.locator("#payment-date").fill("2026-11-01");
   await page.locator("#receipt").setInputFiles(sampleFile("primero.pdf"));
   await page.locator("#code-entry").waitFor({ state: "visible" });
@@ -57,6 +58,31 @@ async function completeDemo(page) {
   await page.locator("#simulate-renewal").click();
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
+
+test("tipo de depósito se exige solo para depósito y se incluye en la simulación", async () => {
+  await withPage(async page => {
+    const select = page.locator("#deposit-type");
+    assert.equal(await select.isVisible(), true);
+    assert.deepEqual(await select.locator("option").allTextContents(), ["Selecciona una opción", "Cheque", "Efectivo"]);
+    await page.locator("#simulate-renewal").click();
+    assert.match(await page.locator("#transfer-message").innerText(), /Selecciona el tipo de depósito/);
+    await page.evaluate(async () => {
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      demoRenewalAdapter.submitRenewal = async renewal => { window.lastRenewal = renewal; return { status: "simulado" }; };
+    });
+    await completeDemo(page);
+    assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "efectivo");
+    await select.selectOption("cheque");
+    await page.locator("#simulate-renewal").click();
+    assert.equal(await page.evaluate(() => window.lastRenewal.tipoDeposito), "cheque");
+    await page.locator("#tab-transferencia").click();
+    assert.equal(await select.isVisible(), false);
+    await page.locator("#simulate-renewal").click();
+    assert.equal(await page.evaluate(() => Object.hasOwn(window.lastRenewal, "tipoDeposito")), false);
+    await page.locator("#tab-tarjeta").click();
+    assert.equal(await select.isVisible(), false);
+  });
+});
 
 test("cambiar el comprobante limpia el resultado y requiere verificar de nuevo", async () => {
   await withPage(async page => {

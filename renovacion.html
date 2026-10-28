@@ -94,6 +94,7 @@
             </details>
             <div class="fields-grid">
               <div class="field-full"><label class="field-label" for="bank">Banco de destino</label><select class="field-control" id="bank"><option value="">Selecciona un banco</option><option value="banco-pacifico-ahorros">Banco del Pacífico</option><option value="banco-pichincha-corriente">Banco Pichincha</option><option value="banco-procredit-ahorros">Banco ProCredit</option></select></div>
+              <div class="field-full" id="deposit-type-field"><label class="field-label" for="deposit-type">Tipo de depósito</label><select class="field-control" id="deposit-type" required><option value="">Selecciona una opción</option><option value="cheque">Cheque</option><option value="efectivo">Efectivo</option></select></div>
               <div class="field-full"><label class="field-label" for="payment-date">Fecha del pago</label><input class="field-control" id="payment-date" type="date"></div>
               <div class="field-full"><label class="field-label" for="receipt">Comprobante de pago</label><input class="file-input" id="receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-describedby="receipt-hint code-request-message"><label class="file-picker" for="receipt"><span class="file-button">Seleccionar archivo</span><span id="file-name">Sin archivo</span></label><p class="field-hint" id="receipt-hint">JPG, JPEG, PNG o PDF; máximo 500 KB (500,000 bytes). El archivo no se envía.</p></div>
             </div>
