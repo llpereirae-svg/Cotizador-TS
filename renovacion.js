@@ -28,10 +28,9 @@ function refreshExpiry() {
 
 const quote = mountQuote();
 const methods = [...document.querySelectorAll("[data-method]")];
-const depositPanel = document.querySelector("#deposit-panel");
-const transferPanel = document.querySelector("#transfer-panel");
+const bankPanel = document.querySelector("#bank-panel");
 const cardPanel = document.querySelector("#card-panel");
-const bankForm = document.querySelector("#bank-form");
+const operation = document.querySelector("#operation");
 const depositTypeField = document.querySelector("#deposit-type-field");
 const depositType = document.querySelector("#deposit-type");
 const codeEntry = document.querySelector("#code-entry");
@@ -47,7 +46,7 @@ const pendingMessage = document.querySelector("#pending-message");
 let codeVerified = false;
 let verificationReference = null;
 let cardPending = false;
-let selectedMethod = "deposito";
+let selectedMethod = "banco";
 let operationRevision = 0;
 let receiptRevision = 0;
 const bankDetails = document.querySelector(".bank-details");
@@ -77,18 +76,16 @@ function selectMethod(button) {
     option.setAttribute("aria-selected", String(active));
     option.tabIndex = active ? 0 : -1;
   });
-  depositPanel.hidden = selected !== "deposito";
-  transferPanel.hidden = selected !== "transferencia";
+  bankPanel.hidden = selected !== "banco";
   cardPanel.hidden = selected !== "tarjeta";
-  depositTypeField.hidden = selected !== "deposito";
-  depositType.required = selected === "deposito";
-  if (selected !== "tarjeta") {
-    (selected === "deposito" ? depositPanel : transferPanel).append(bankForm);
-    document.querySelector("#bank-method-description").textContent = selected === "deposito"
-      ? "Completa los datos de tu depósito bancario."
-      : "Completa los datos de tu transferencia bancaria.";
-  }
 }
+
+operation.addEventListener("change", () => {
+  noteOperationChange();
+  const isDeposit = operation.value === "deposito";
+  depositTypeField.hidden = !isDeposit;
+  depositType.required = isDeposit;
+});
 
 methods.forEach((button, index) => {
   button.addEventListener("click", () => selectMethod(button));
@@ -184,7 +181,7 @@ renewalButton.addEventListener("click", async () => {
   }
   const currentQuote = quote.current();
   const bank = document.querySelector("#bank").value;
-  const operationType = selectedMethod;
+  const operationType = operation.value;
   const paymentDate = document.querySelector("#payment-date").value;
   const receiptSelected = validReceipt(receiptInput.files[0]);
   const terms = document.querySelector("#terms").checked;
