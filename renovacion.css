@@ -3,17 +3,14 @@
 .renewal-layout .payment-card { grid-column: 1; grid-row: 2; }
 .customer-preview { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 12px; margin-top: 25px; padding: 12px 15px; background: #f6f9fc; border-radius: 9px; font-size: 13px; color: #607185; }
 .customer-preview strong { color: #38546d; font-size: 12px; font-weight: 600; }
-.payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
-.payment-option { min-width: 0; display: flex; align-items: center; gap: 12px; position: relative; padding: 15px; border: 1px solid #d6dfe9; border-radius: 10px; color: var(--navy); background: #fff; text-align: left; }
+.payment-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 20px; border-bottom: 1px solid #dce5ef; }
+.payment-option { min-width: 0; min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; margin-bottom: -1px; padding: 9px 5px; border: 0; border-bottom: 2px solid transparent; color: #526579; background: transparent; text-align: center; cursor: pointer; }
 .payment-option:hover { background: #f8fbfd; }
-.payment-option.is-selected { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); background: #f4f8fc; }
-.payment-option > .icon { flex: 0 0 auto; width: 22px; height: 22px; }
-.payment-option strong, .payment-option small { display: block; }
-.payment-option strong { font-size: 13px; line-height: 1.35; }
-.payment-option small { margin-top: 3px; color: #526579; font-size: 12px; }
-.option-check { display: block; flex: 0 0 auto; width: 15px; height: 15px; margin-left: auto; border: 1px solid #bdc9d8; border-radius: 50%; }
-.is-selected .option-check { border: 4px solid var(--navy); background: white; }
-.method-panel { margin-top: 26px; padding-top: 24px; border-top: 1px solid #e6ebf1; }
+.payment-option.is-selected { border-bottom-color: var(--navy); color: var(--navy); }
+.payment-option > .icon { flex: 0 0 auto; width: 18px; height: 18px; }
+.payment-option strong { display: block; font-size: 13px; line-height: 1.3; }
+.payphone-logo { display: block; width: 74px; max-width: 100%; height: auto; margin: 4px auto 0; }
+.method-panel { padding-top: 22px; }
 .panel-title h3, .verification h3 { margin-bottom: 4px; font-size: 16px; }
 .panel-title p, .verification p { margin: 0; color: var(--muted); font-size: 13px; }
 .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 14px; }
@@ -40,17 +37,13 @@
 .payment-info li + li { margin-top: 7px; }
 @media (max-width: 760px) {
   .renewal-layout .usage-card, .renewal-layout .summary-card, .renewal-layout .payment-card { grid-column: auto; grid-row: auto; position: static; }
-  .payment-options { grid-template-columns: 1fr 1fr; }
-  .payment-option { align-items: flex-start; gap: 8px; padding: 13px 11px; }
-  .payment-option .icon { width: 20px; height: 20px; }
-  .option-check { display: none; }
   .payment-option strong { font-size: 12px; }
-  .payment-option small { font-size: 11px; }
 }
 @media (max-width: 390px) {
-  .payment-options { grid-template-columns: 1fr; }
-  .payment-option { align-items: center; }
-  .option-check { display: block; }
+  .payment-option { min-height: 58px; padding: 9px 2px; }
+  .payment-option > .icon { display: none; }
+  .payment-option strong { font-size: 11px; }
+  .payphone-logo { width: 64px; }
   .fields-grid { grid-template-columns: 1fr; }
   .field-full { grid-column: auto; }
   .verification { align-items: flex-start; flex-direction: column; }
@@ -79,6 +72,10 @@
 .bank-details-body li strong { color: var(--text); font-weight: 600; }
 .bank-details-body li div span { font-size: 12px; }
 .bank-number { font-size: 13px; font-variant-numeric: tabular-nums; }
+.bank-account { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.copy-account { min-height: 38px; padding: 6px 10px; border: 1px solid #ccd8e5; border-radius: 7px; color: var(--navy); background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.copy-account:hover { background: #eef4fa; }
+.copy-message:not(:empty) { margin: 10px 0 0; color: var(--navy); }
 .bank-warning { padding: 11px 12px; background: #fff8ee; border-radius: 8px; color: #694c2c; }
 @media (max-width: 360px) { .preview-mark { font-size: 10px; padding: 5px 7px; } }
 

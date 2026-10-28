@@ -28,8 +28,10 @@ function refreshExpiry() {
 
 const quote = mountQuote();
 const methods = [...document.querySelectorAll("[data-method]")];
+const depositPanel = document.querySelector("#deposit-panel");
 const transferPanel = document.querySelector("#transfer-panel");
 const cardPanel = document.querySelector("#card-panel");
+const bankForm = document.querySelector("#bank-form");
 const codeEntry = document.querySelector("#code-entry");
 const codeRequestMessage = document.querySelector("#code-request-message");
 const receiptInput = document.querySelector("#receipt");
@@ -43,6 +45,7 @@ const pendingMessage = document.querySelector("#pending-message");
 let codeVerified = false;
 let verificationReference = null;
 let cardPending = false;
+let selectedMethod = "deposito";
 let operationRevision = 0;
 let receiptRevision = 0;
 const bankDetails = document.querySelector(".bank-details");
@@ -61,17 +64,40 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshExpiry();
 });
 
-methods.forEach(button => {
-  button.addEventListener("click", () => {
-    noteOperationChange();
-    const selected = button.dataset.method;
-    methods.forEach(option => {
-      const active = option === button;
-      option.classList.toggle("is-selected", active);
-      option.setAttribute("aria-pressed", String(active));
-    });
-    transferPanel.hidden = selected !== "transferencia";
-    cardPanel.hidden = selected !== "tarjeta";
+function selectMethod(button) {
+  if (selectedMethod === button.dataset.method) return;
+  noteOperationChange();
+  const selected = button.dataset.method;
+  selectedMethod = selected;
+  methods.forEach(option => {
+    const active = option === button;
+    option.classList.toggle("is-selected", active);
+    option.setAttribute("aria-selected", String(active));
+    option.tabIndex = active ? 0 : -1;
+  });
+  depositPanel.hidden = selected !== "deposito";
+  transferPanel.hidden = selected !== "transferencia";
+  cardPanel.hidden = selected !== "tarjeta";
+  if (selected !== "tarjeta") {
+    (selected === "deposito" ? depositPanel : transferPanel).append(bankForm);
+    document.querySelector("#bank-method-description").textContent = selected === "deposito"
+      ? "Completa los datos de tu depósito bancario."
+      : "Completa los datos de tu transferencia bancaria.";
+  }
+}
+
+methods.forEach((button, index) => {
+  button.addEventListener("click", () => selectMethod(button));
+  button.addEventListener("keydown", event => {
+    let next;
+    if (event.key === "ArrowRight") next = (index + 1) % methods.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + methods.length) % methods.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = methods.length - 1;
+    else return;
+    event.preventDefault();
+    methods[next].focus();
+    selectMethod(methods[next]);
   });
 });
 
@@ -111,6 +137,21 @@ bankSummary.addEventListener("click", event => {
   transferPending.hidden = false;
 });
 
+for (const button of document.querySelectorAll(".copy-account")) {
+  button.addEventListener("click", async () => {
+    const message = document.querySelector(".copy-message");
+    if (cardPending) return;
+    const number = button.closest("li").querySelector(".bank-number strong").textContent.trim();
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(number);
+      message.textContent = "Número de cuenta copiado.";
+    } catch {
+      message.textContent = "No pudimos copiar la cuenta. Selecciona el número y cópialo manualmente.";
+    }
+  });
+}
+
 document.querySelector("#verify-code").addEventListener("click", async () => {
   noteOperationChange();
   const revision = operationRevision;
@@ -139,7 +180,7 @@ renewalButton.addEventListener("click", async () => {
   }
   const currentQuote = quote.current();
   const bank = document.querySelector("#bank").value;
-  const operationType = document.querySelector("#operation").value;
+  const operationType = selectedMethod;
   const paymentDate = document.querySelector("#payment-date").value;
   const receiptSelected = validReceipt(receiptInput.files[0]);
   const terms = document.querySelector("#terms").checked;
@@ -222,7 +263,7 @@ receiptInput.addEventListener("change", () => {
   void requestCodeForReceipt();
 });
 
-for (const selector of ["#bank", "#operation", "#payment-date", "#terms"]) {
+for (const selector of ["#bank", "#payment-date", "#terms"]) {
   document.querySelector(selector).addEventListener("change", noteOperationChange);
 }
 document.addEventListener("quotechange", noteOperationChange);
