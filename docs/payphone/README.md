@@ -1,5 +1,15 @@
 # Cajita de Payphone: preparación y simulación local
 
+## Estados y errores de la confirmación
+
+La documentación oficial de la Cajita indica que la confirmación devuelve `statusCode` 3 y `transactionStatus` `Approved` para una operación aprobada, o `statusCode` 2 y `transactionStatus` `Canceled` para una cancelada. El backend debe cotejar además los identificadores, el importe y la moneda con la orden antes de aceptar el resultado.
+
+Una respuesta HTTP exitosa no demuestra por sí sola que el pago haya sido aprobado. Un timeout, error de red, respuesta incompleta o datos discordantes dejan el resultado **pendiente de conciliación**; no se debe asumir cancelación ni iniciar otro cobro para esa orden. La documentación de PayPhone presenta, por ejemplo, `errorCode` 20 cuando no encuentra la transacción; ese error por sí solo no demuestra que otro intento sea seguro.
+
+PayPhone documenta un reverso automático si una transacción no se confirma dentro de cinco minutos. Una espera de un minuto en la interfaz no demuestra que se haya producido el reverso: el backend debe verificar el estado.
+
+Referencias oficiales: [Cajita de pagos](https://docs.payphone.app/cajita-de-pagos) y [códigos de error](https://docs.payphone.app/codigos-de-error).
+
 Este directorio describe un **prototipo**, no una implementación para
 producción. El simulador no usa red ni credenciales. El adaptador de
 confirmación acepta un token y un transporte inyectado; no se suministra
