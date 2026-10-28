@@ -1,5 +1,5 @@
 import { mountQuote } from "./assets/quote.js";
-import { demoRenewalAdapter } from "./renovacion-mock.js";
+import { demoRenewalAdapter } from "./renovacion-mock.js?v=20261028-2";
 
 // Contexto de demostración. La integración real debe recibir estos datos del
 // backend autenticado; la URL no acredita ni autoriza al titular de la cuenta.
@@ -58,7 +58,6 @@ const transferPending = document.querySelector("#transfer-pending");
 const cardResolutionMessage = document.querySelector("#card-resolution-message");
 const codeInput = document.querySelector("#email-code");
 const codeMessage = document.querySelector("#code-message");
-const finishRenewal = document.querySelector("#finish-renewal");
 const codeDialog = document.querySelector("#code-dialog");
 const termsDialog = document.querySelector("#terms-dialog");
 const cardTerms = document.querySelector("#card-terms");
@@ -136,7 +135,6 @@ methods.forEach((button, index) => {
 });
 
 function resetCode() {
-  finishRenewal.hidden = true;
   receiptRevision += 1;
   codeVerified = false;
   verificationReference = null;
@@ -158,7 +156,6 @@ async function openCodeDemo() {
   if (codeRequestInFlight) return;
   codeRequestInFlight = true;
   const revision = ++receiptRevision;
-  finishRenewal.hidden = true;
   codeVerified = false;
   verificationReference = null;
   codeInput.value = "";
@@ -219,8 +216,7 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
     transferMessage.textContent = "Prueba completada. No se envió información ni se realizó ningún pago o renovación.";
     transferMessage.dataset.kind = "complete";
   }
-  codeMessage.textContent = "Código de prueba verificado. No se envió información real.";
-  finishRenewal.hidden = false;
+  demoRenewalAdapter.finish();
   } catch {
     codeVerified = false;
     codeMessage.textContent = "No se pudo verificar el código. Intenta nuevamente.";
@@ -231,7 +227,6 @@ document.querySelector("#verify-code").addEventListener("click", async () => {
 });
 
 codeInput.addEventListener("input", () => {
-  finishRenewal.hidden = true;
   noteOperationChange();
   if (codeVerified) {
     codeVerified = false;

@@ -36,6 +36,7 @@ async function withPage(run, options = {}) {
   try {
     await page.goto(new URL("/renovacion.html", baseUrl).href, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector("[data-monthly]")?.getAttribute("aria-invalid") === "false");
+    await page.evaluate(async () => { const { demoRenewalAdapter } = await import("./renovacion-mock.js?v=20261028-2"); demoRenewalAdapter.finish = () => { window.demoFinished = (window.demoFinished || 0) + 1; }; });
     await run(page);
     assert.deepEqual(blocked, [], "La maqueta no debe enviar datos ni realizar solicitudes externas.");
     assert.deepEqual(errors, [], "No debe haber errores de JavaScript.");
@@ -87,14 +88,13 @@ async function completeDemo(page) {
   await page.locator("#terms").check();
   await page.locator("#simulate-renewal").click();
   await page.locator("#code-entry").waitFor({ state: "visible" });
-  assert.equal(await page.locator("#finish-renewal").isVisible(), false);
+  assert.equal(await page.evaluate(() => window.demoFinished || 0), 0);
   await page.locator("#email-code").fill("000000");
   await page.locator("#verify-code").click();
-  assert.equal(await page.locator("#finish-renewal").isVisible(), false);
+  assert.equal(await page.evaluate(() => window.demoFinished || 0), 0);
   await page.locator("#email-code").fill("123456");
   await page.locator("#verify-code").click();
-  assert.equal(await page.locator("#finish-renewal").isVisible(), true);
-  assert.equal(await page.locator("#finish-renewal").getAttribute("href"), "https://tbc.tributasoft.ec/Erp-web/templates/registro/login.xhtml");
+  assert.equal(await page.evaluate(() => window.demoFinished), 1);
   await page.locator("#code-dialog [data-close-dialog]").click();
   assert.match(await page.locator("#transfer-message").innerText(), /Prueba completada/);
 }
@@ -102,13 +102,13 @@ async function completeDemo(page) {
 test("el código no se reutiliza tras cambiar la operación y no se envía dos veces", async () => {
   await withPage(async page => {
     await page.evaluate(async () => {
-      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js?v=20261028-2");
       demoRenewalAdapter.submitRenewal = async () => { window.submitCount = (window.submitCount || 0) + 1; return { status: "simulado" }; };
     });
     await completeDemo(page);
     await page.locator("#bank").selectOption("banco-pichincha-corriente");
     await page.locator("#simulate-renewal").click();
-    assert.equal(await page.locator("#finish-renewal").isVisible(), false);
+    assert.equal(await page.locator("#email-code").inputValue(), "");
     assert.equal(await page.locator("#email-code").inputValue(), "");
     await page.locator("#email-code").fill("123456");
     await page.locator("#verify-code").click();
@@ -120,7 +120,7 @@ test("el código no se reutiliza tras cambiar la operación y no se envía dos v
 test("no se solicitan dos códigos con clics simultáneos", async () => {
   await withPage(async page => {
     await page.evaluate(async () => {
-      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js?v=20261028-2");
       demoRenewalAdapter.requestEmailCode = () => { window.requestCount = (window.requestCount || 0) + 1; return new Promise(resolve => { window.resolveRequest = resolve; }); };
     });
     await page.locator("#payment-date").fill("2026-11-01");
@@ -137,7 +137,7 @@ test("depósito y transferencia se distinguen sin pedir tipo de depósito", asyn
   await withPage(async page => {
     assert.equal(await page.locator("#deposit-type").count(), 0);
     await page.evaluate(async () => {
-      const { demoRenewalAdapter } = await import("./renovacion-mock.js");
+      const { demoRenewalAdapter } = await import("./renovacion-mock.js?v=20261028-2");
       demoRenewalAdapter.submitRenewal = async renewal => { window.lastRenewal = renewal; return { status: "simulado" }; };
     });
     await completeDemo(page);
